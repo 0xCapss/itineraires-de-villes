@@ -70,8 +70,37 @@ body{background:var(--papier);color:var(--encre);font-family:var(--corps);font-s
 .visuel-cache{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 .appli{display:flex;height:100%;min-height:0}
-.vols-liens{display:grid;gap:6px;margin-top:4px}.vols-liens .rang{display:flex;flex-wrap:wrap;gap:6px}
-a.lien-vol{display:inline-block;text-decoration:none;color:var(--encre);text-align:center}
+#vols.vols-droite:not([hidden]){position:fixed;top:12px;right:12px;bottom:12px;width:min(680px,calc(100vw - 430px - 40px));z-index:45;margin:0;padding:0;overflow:auto;display:block;border-radius:20px}
+#vols.vols-droite .vd-tete{position:sticky;top:0;z-index:3;display:flex;gap:14px;align-items:flex-start;padding:20px 24px 14px;background:var(--carte);border-bottom:1px solid var(--filet)}
+.vd-ico{flex:none;width:46px;height:46px;border-radius:12px;background:var(--ardoise);color:var(--sur-ardoise);display:grid;place-items:center}
+.vd-titre{flex:1;min-width:0}.vd-titre h3{margin:0 0 2px;font-family:var(--display);font-size:22px;letter-spacing:-.01em}.vd-titre p{margin:0;font-size:13px;line-height:1.4}
+.vd-form{padding:16px 24px 0;display:grid;gap:18px}
+.vd-bloc{border:0;padding:0;margin:0;display:grid;gap:12px;min-width:0}
+.vd-bloc legend{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px;padding:0;margin-bottom:8px}
+.vd-n{flex:none;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--ardoise);color:var(--ardoise);display:grid;place-items:center;font:600 12px/1 var(--chiffres)}
+.vd-form label{display:grid;gap:5px;font-size:12.5px;color:var(--encre-2)}
+.vd-form .coche{display:flex;font-size:14px;color:var(--encre)}
+.vd-form .champ{font-size:15px;padding:11px 12px;width:100%;box-sizing:border-box}
+.vd-lib{display:block;font-size:12.5px;color:var(--encre-2);margin-bottom:6px}
+.vd-trajet{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px;align-items:end}
+.vd-swap{height:44px;width:44px;padding:0;font-size:18px;border-radius:12px}
+.vd-quand{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;align-items:end}
+.vd-pas{display:inline-flex;align-items:center;border:1px solid var(--filet);border-radius:10px;overflow:hidden;background:var(--papier)}
+.vd-pas button{width:44px;height:44px;border:0;background:transparent;font-size:22px;cursor:pointer;color:var(--encre)}.vd-pas button:hover{background:var(--filet)}
+.vd-pas output{min-width:48px;text-align:center;font-weight:600;font-size:17px;font-variant-numeric:tabular-nums}
+.vd-classe{display:flex;flex-wrap:wrap;gap:8px}
+.vd-classe button{padding:9px 16px;border:1.5px solid var(--filet);border-radius:999px;background:var(--papier);color:var(--encre);font:inherit;font-size:14px;cursor:pointer}
+.vd-classe button:hover{border-color:var(--ardoise)}.vd-classe button[aria-pressed="true"]{background:var(--ardoise);color:var(--sur-ardoise);border-color:var(--ardoise)}
+.vd-form .aeros{display:grid;gap:4px}.vd-form .aeros>div{display:flex;flex-wrap:wrap;gap:6px 16px}
+.vd-avance{border:1px solid var(--filet);border-radius:12px;padding:10px 14px}.vd-avance summary{cursor:pointer;font-size:13px;color:var(--encre-2)}.vd-avance .vd-quand{margin-top:12px}
+.vd-actions{position:sticky;bottom:0;z-index:2;background:var(--carte);border-top:1px solid var(--filet);margin:0 -24px;padding:14px 24px 18px;display:grid;gap:14px}
+.vd-liens{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+a.vd-lien{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px 12px;border:1.5px solid var(--filet);border-radius:12px;text-decoration:none;color:var(--encre);font-weight:600;font-size:14px;background:var(--papier)}
+a.vd-lien:hover{border-color:var(--ardoise)}a.vd-lien[aria-disabled="true"]{pointer-events:none}
+.vd-connect{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.vd-sanscl .vd-connect{display:none}.vd-sanscl a.vd-lien{background:var(--ardoise);color:var(--sur-ardoise);border-color:var(--ardoise)}
+#vols.vols-droite>.optim,#vols.vols-droite>.vols-liste,#vols.vols-droite>#volsretenus{margin:14px 24px 0}#vols.vols-droite>.optim:last-child{margin-bottom:24px}
+@media (max-width:960px){#vols.vols-droite:not([hidden]){inset:0;width:auto;border-radius:0}}
 .boiteg{padding:12px 16px 4px}
 .boiteg-titre{font-family:var(--chiffres);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:500;color:var(--encre-3);margin:0 0 8px}
 .boiteg-liste{list-style:none;margin:0;padding:0;display:grid;gap:8px}
@@ -651,59 +680,79 @@ a.btn{text-decoration:none;display:inline-block}
       <div id="budgetsortie"></div>
       <p class="sous bud-note">Les transports en commun sont comptés par voyageur, les taxis par course. Les montants « ≈ » sont des estimations. Les entrées et les repas ne sont pas connus : saisissez-les dans la fiche de chaque étape.</p>
     </section>
-    <section class="ajout vols" id="vols" hidden aria-label="Vols entre les villes">
-      <div class="ajout-tete">
-        <h3>Vols entre les villes</h3>
+    <section class="ajout vols vols-droite" id="vols" hidden aria-label="Réservation de vol">
+      <header class="vd-tete">
+        <span class="vd-ico"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></span>
+        <div class="vd-titre"><h3>Réservation de vol</h3><p class="sous">Indiquez votre trajet, puis comparez les vols sur Google Flights, Skyscanner, Kayak ou Expedia : tout ce que vous renseignez ici est repris sur le site.</p></div>
         <button type="button" class="btn discret" id="volsfermer">Fermer</button>
-      </div>
-      <form class="formpose" id="volsform">
-        <div class="rang">
-          <label>De <select class="champ court" id="volsde"></select></label>
-          <button type="button" class="btn petit inverser" id="volsinverser" aria-label="Inverser le sens du trajet" title="Inverser">⇄</button>
-          <label>Vers <select class="champ court" id="volsvers"></select></label>
-        </div>
-        <div class="rang">
-          <label>Date du vol <input class="champ court" type="date" id="volsdate" required></label>
-          <label>Voyageurs <select class="champ court" id="volsadultes"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
-          <label>Classe <select class="champ court" id="volsclasse"><option value="economy">Économique</option><option value="premium">Premium économique</option><option value="business">Affaires</option><option value="first">Première</option></select></label>
-        </div>
-        <fieldset class="contraintes">
-          <legend>Contraintes</legend>
-          <label class="coche"><input type="checkbox" id="volsdirects"> Vol direct uniquement</label>
-          <div class="rang">
-            <label>Partir après <input class="champ court" type="time" id="volsapres"></label>
-            <label>Arriver avant <input class="champ court" type="time" id="volsavant"></label>
+      </header>
+      <form class="vd-form" id="volsform">
+        <fieldset class="vd-bloc">
+          <legend><span class="vd-n">1</span> Votre trajet</legend>
+          <div class="vd-trajet">
+            <label>Ville de départ <select class="champ" id="volsde"></select></label>
+            <button type="button" class="btn vd-swap" id="volsinverser" aria-label="Inverser le sens du trajet" title="Inverser départ et arrivée">&#8644;</button>
+            <label>Ville d'arrivée <select class="champ" id="volsvers"></select></label>
+          </div>
+        </fieldset>
+        <fieldset class="vd-bloc">
+          <legend><span class="vd-n">2</span> Quand et pour qui ?</legend>
+          <div class="vd-quand">
+            <label>Date du vol <input class="champ" type="date" id="volsdate" required></label>
+            <div class="vd-voy"><span class="vd-lib">Voyageurs</span>
+              <div class="vd-pas"><button type="button" id="vdmoins" aria-label="Un voyageur de moins">&minus;</button><output id="vdnb" aria-live="polite">1</output><button type="button" id="vdplus" aria-label="Un voyageur de plus">+</button></div>
+            </div>
+          </div>
+          <select class="visuel-cache" id="volsadultes" tabindex="-1" aria-hidden="true"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select>
+          <div><span class="vd-lib">Classe</span>
+            <div class="vd-classe" role="group" aria-label="Classe de voyage">
+              <button type="button" data-classe="economy" aria-pressed="true">Économique</button><button type="button" data-classe="premium" aria-pressed="false">Premium</button><button type="button" data-classe="business" aria-pressed="false">Affaires</button><button type="button" data-classe="first" aria-pressed="false">Première</button>
+            </div>
+          </div>
+          <select class="visuel-cache" id="volsclasse" tabindex="-1" aria-hidden="true"><option value="economy">Économique</option><option value="premium">Premium économique</option><option value="business">Affaires</option><option value="first">Première</option></select>
+        </fieldset>
+        <fieldset class="vd-bloc">
+          <legend><span class="vd-n">3</span> Vos préférences <span class="sous">(facultatif)</span></legend>
+          <label class="coche vd-sw"><input type="checkbox" id="volsdirects"> Vol direct uniquement</label>
+          <div class="vd-quand">
+            <label>Partir après <input class="champ" type="time" id="volsapres"></label>
+            <label>Arriver avant <input class="champ" type="time" id="volsavant"></label>
           </div>
           <label class="coche"><input type="checkbox" id="volscaler"> <span id="volscalerlib"></span></label>
-          <div class="aeros"><span class="sous">Aéroports de départ</span><div id="volsaerodep"></div></div>
-          <div class="aeros"><span class="sous">Aéroports d'arrivée</span><div id="volsaeroarr"></div></div>
+          <div class="aeros"><span class="vd-lib">Aéroports de départ</span><div id="volsaerodep"></div></div>
+          <div class="aeros"><span class="vd-lib">Aéroports d'arrivée</span><div id="volsaeroarr"></div></div>
           <p class="sous" id="volsmarges"></p>
         </fieldset>
-        <div class="rang">
-          <label>Classer par
-            <select class="champ" id="volstri">
-              <option value="compromis">Meilleur compromis temps et prix</option>
-              <option value="rapide">Le plus rapide</option>
-              <option value="prix">Le moins cher</option>
-              <option value="escales">Le moins d'escales</option>
-              <option value="depart">Départ le plus tôt</option>
-            </select>
-          </label>
-          <label>Une heure de mon temps vaut
-            <select class="champ court" id="volsvaleur"><option value="5">peu (5)</option><option value="15" selected>moyen (15)</option><option value="40">beaucoup (40)</option></select>
-          </label>
-          <label>Taux de change (1 € en $, facultatif) <input class="champ court" type="text" inputmode="decimal" id="volstaux" placeholder="ex. 1,10"></label>
-        </div>
-        <div class="rang"><button type="submit" class="btn primaire" id="volschercher">Chercher des vols</button></div>
-        <div class="vols-liens">
-          <span class="sous">Ou chercher ce trajet sur un site (nouvel onglet, sans les connecteurs) :</span>
-          <div class="rang">
-            <a class="btn petit lien-vol" id="lienvolgf" target="_blank" rel="noopener noreferrer">Google Flights</a>
-            <a class="btn petit lien-vol" id="lienvolsk" target="_blank" rel="noopener noreferrer">Skyscanner</a>
-            <a class="btn petit lien-vol" id="lienvolky" target="_blank" rel="noopener noreferrer">Kayak</a>
-            <a class="btn petit lien-vol" id="lienvolex" target="_blank" rel="noopener noreferrer">Expedia</a>
+        <details class="vd-avance" id="vdavance">
+          <summary>Options de classement des résultats (recherche avec les connecteurs)</summary>
+          <div class="vd-quand">
+            <label>Classer par
+              <select class="champ" id="volstri">
+                <option value="compromis">Meilleur compromis temps et prix</option>
+                <option value="rapide">Le plus rapide</option>
+                <option value="prix">Le moins cher</option>
+                <option value="escales">Le moins d'escales</option>
+                <option value="depart">Départ le plus tôt</option>
+              </select>
+            </label>
+            <label>Une heure de mon temps vaut
+              <select class="champ" id="volsvaleur"><option value="5">peu (5)</option><option value="15" selected>moyen (15)</option><option value="40">beaucoup (40)</option></select>
+            </label>
+            <label>Taux de change (1 € en $, facultatif) <input class="champ" type="text" inputmode="decimal" id="volstaux" placeholder="ex. 1,10"></label>
           </div>
-          <p class="sous" id="liensnote" role="status"></p>
+        </details>
+        <div class="vd-actions">
+          <div class="vd-comparer">
+            <span class="vd-lib">Comparer ce vol sur un site <span class="sous">(s'ouvre dans un nouvel onglet)</span></span>
+            <div class="vd-liens" id="vdliens">
+              <a class="vd-lien" id="lienvolgf" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>Google Flights</a>
+              <a class="vd-lien" id="lienvolsk" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>Skyscanner</a>
+              <a class="vd-lien" id="lienvolky" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>Kayak</a>
+              <a class="vd-lien" id="lienvolex" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>Expedia</a>
+            </div>
+            <p class="sous" id="liensnote" role="status"></p>
+          </div>
+          <div class="vd-connect" id="vdconnect"><button type="submit" class="btn primaire" id="volschercher">Chercher avec mes connecteurs Claude</button><span class="sous">Prix et horaires réels dans cette page (Expedia et eDreams).</span></div>
         </div>
       </form>
       <div class="optim" id="volsetat" role="status">Recherche dans Expedia (dollars américains) et eDreams (euros), via vos connecteurs.</div>
@@ -6854,6 +6903,26 @@ vmbCnCfH5TJKTBFva0O4Wl+l/Ix13xO6KCJPD5H51fete+aO/R8EyzZRoN8BAA==`,Et;function Mr
   etat(); setTimeout(etat,1500);
 })();
 </script>
+<script>
+(function(){
+  var vols=document.getElementById("vols"), sel=document.getElementById("volsadultes"), cls=document.getElementById("volsclasse"), nb=document.getElementById("vdnb");
+  if(!vols||!sel||!cls) return;
+  var chips=document.querySelectorAll(".vd-classe button");
+  function sync(){ nb.textContent=sel.value; document.getElementById("vdmoins").disabled=(+sel.value<=1); document.getElementById("vdplus").disabled=(+sel.value>=6);
+    Array.prototype.forEach.call(chips,function(b){ b.setAttribute("aria-pressed",String(b.dataset.classe===cls.value)); }); }
+  function change(el){ el.dispatchEvent(new Event("change",{bubbles:true})); sync(); }
+  document.getElementById("vdmoins").addEventListener("click",function(){ if(+sel.value>1){ sel.value=String(+sel.value-1); change(sel); } });
+  document.getElementById("vdplus").addEventListener("click",function(){ if(+sel.value<6){ sel.value=String(+sel.value+1); change(sel); } });
+  Array.prototype.forEach.call(chips,function(b){ b.addEventListener("click",function(){ cls.value=b.dataset.classe; change(cls); }); });
+  new MutationObserver(sync).observe(vols,{attributes:true,attributeFilter:["hidden"]});
+  // la recherche par connecteurs n'existe que dans la page publiée dans Claude : ailleurs, les boutons de comparaison deviennent l'action principale
+  var enClaude=!!(window.claude && window.claude.use);
+  vols.classList.toggle("vd-sanscl",!enClaude);
+  if(!enClaude){ var p=document.querySelector(".vd-titre p"); if(p) p.textContent="Indiquez votre trajet, puis ouvrez la recherche sur Google Flights, Skyscanner, Kayak ou Expedia : tout ce que vous renseignez ici est repris sur le site."; }
+  sync();
+})();
+</script>
+
 
 
 </body></html>
