@@ -70,7 +70,7 @@ body{background:var(--papier);color:var(--encre);font-family:var(--corps);font-s
 .visuel-cache{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 .appli{display:flex;height:100%;min-height:0}
-#vols.vols-droite:not([hidden]){position:fixed;top:12px;right:12px;bottom:12px;width:min(680px,calc(100vw - 430px - 40px));z-index:45;margin:0;padding:0;overflow:auto;display:block;border-radius:20px}
+#vols.vols-droite:not([hidden]){position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(780px,calc(100vw - 32px));max-height:calc(100vh - 32px);z-index:45;margin:0;padding:0;overflow:auto;display:block;border-radius:20px;box-shadow:0 0 0 100vmax rgba(15,28,43,.5),0 24px 70px rgba(0,0,0,.45)}
 #vols.vols-droite .vd-tete{position:sticky;top:0;z-index:3;display:flex;gap:14px;align-items:flex-start;padding:20px 24px 14px;background:var(--carte);border-bottom:1px solid var(--filet)}
 .vd-ico{flex:none;width:46px;height:46px;border-radius:12px;background:var(--ardoise);color:var(--sur-ardoise);display:grid;place-items:center}
 .vd-titre{flex:1;min-width:0}.vd-titre h3{margin:0 0 2px;font-family:var(--display);font-size:22px;letter-spacing:-.01em}.vd-titre p{margin:0;font-size:13px;line-height:1.4}
@@ -100,7 +100,11 @@ a.vd-lien:hover{border-color:var(--ardoise)}a.vd-lien[aria-disabled="true"]{poin
 .vd-connect{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .vd-sanscl .vd-connect{display:none}.vd-sanscl a.vd-lien{background:var(--ardoise);color:var(--sur-ardoise);border-color:var(--ardoise)}
 #vols.vols-droite>.optim,#vols.vols-droite>.vols-liste,#vols.vols-droite>#volsretenus{margin:14px 24px 0}#vols.vols-droite>.optim:last-child{margin-bottom:24px}
-@media (max-width:960px){#vols.vols-droite:not([hidden]){inset:0;width:auto;border-radius:0}}
+@media (max-width:760px){#vols.vols-droite:not([hidden]){top:0;left:0;transform:none;width:100vw;max-height:100vh;height:100vh;border-radius:0}}
+.vd-trip{display:inline-flex;border:1.5px solid var(--filet);border-radius:999px;padding:3px;background:var(--papier);justify-self:start}
+.vd-trip button{padding:8px 18px;border:0;border-radius:999px;background:transparent;color:var(--encre);font:inherit;font-size:14px;cursor:pointer}
+.vd-trip button[aria-pressed="true"]{background:var(--ardoise);color:var(--sur-ardoise)}
+.vd-sanscl #volsretourbtn{display:none!important}
 .boiteg{padding:12px 16px 4px}
 .boiteg-titre{font-family:var(--chiffres);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:500;color:var(--encre-3);margin:0 0 8px}
 .boiteg-liste{list-style:none;margin:0;padding:0;display:grid;gap:8px}
@@ -689,6 +693,7 @@ a.btn{text-decoration:none;display:inline-block}
       <form class="vd-form" id="volsform">
         <fieldset class="vd-bloc">
           <legend><span class="vd-n">1</span> Votre trajet</legend>
+          <div class="vd-trip" role="group" aria-label="Type de trajet"><button type="button" data-trip="aller" aria-pressed="true">Aller simple</button><button type="button" data-trip="retour" aria-pressed="false">Aller-retour</button></div>
           <div class="vd-trajet">
             <label>Ville de départ <select class="champ" id="volsde"></select></label>
             <button type="button" class="btn vd-swap" id="volsinverser" aria-label="Inverser le sens du trajet" title="Inverser départ et arrivée">&#8644;</button>
@@ -698,7 +703,8 @@ a.btn{text-decoration:none;display:inline-block}
         <fieldset class="vd-bloc">
           <legend><span class="vd-n">2</span> Quand et pour qui ?</legend>
           <div class="vd-quand">
-            <label>Date du vol <input class="champ" type="date" id="volsdate" required></label>
+            <label><span id="vddatelib">Date du vol</span> <input class="champ" type="date" id="volsdate" required></label>
+            <label id="vdretour" hidden>Date du retour <input class="champ" type="date" id="volsretour"></label>
             <div class="vd-voy"><span class="vd-lib">Voyageurs</span>
               <div class="vd-pas"><button type="button" id="vdmoins" aria-label="Un voyageur de moins">&minus;</button><output id="vdnb" aria-live="polite">1</output><button type="button" id="vdplus" aria-label="Un voyageur de plus">+</button></div>
             </div>
@@ -752,7 +758,7 @@ a.btn{text-decoration:none;display:inline-block}
             </div>
             <p class="sous" id="liensnote" role="status"></p>
           </div>
-          <div class="vd-connect" id="vdconnect"><button type="submit" class="btn primaire" id="volschercher">Chercher avec mes connecteurs Claude</button><span class="sous">Prix et horaires réels dans cette page (Expedia et eDreams).</span></div>
+          <div class="vd-connect" id="vdconnect"><button type="submit" class="btn primaire" id="volschercher">Chercher avec mes connecteurs Claude</button><button type="button" class="btn" id="volsretourbtn" hidden>Chercher le vol retour</button><span class="sous" id="vdconnectnote">Prix et horaires réels dans cette page (Expedia et eDreams).</span></div>
         </div>
       </form>
       <div class="optim" id="volsetat" role="status">Recherche dans Expedia (dollars américains) et eDreams (euros), via vos connecteurs.</div>
@@ -6460,7 +6466,7 @@ vmbCnCfH5TJKTBFva0O4Wl+l/Ix13xO6KCJPD5H51fete+aO/R8EyzZRoN8BAA==`,Et;function Mr
     function majLiens(){
       var a=villeVol(document.getElementById("volsde").value), b=villeVol(document.getElementById("volsvers").value);
       var d=document.getElementById("volsdate").value, n=parseInt(document.getElementById("volsadultes").value,10)||1, c=document.getElementById("volsclasse").value;
-      var direct=document.getElementById("volsdirects").checked, apres=document.getElementById("volsapres").value, avant=document.getElementById("volsavant").value;
+      var rt=(f.dataset.trip==="retour"), dr=document.getElementById("volsretour").value, drv=rt&&/^\d{4}-\d{2}-\d{2}$/.test(dr)&&dr>=d, direct=document.getElementById("volsdirects").checked, apres=document.getElementById("volsapres").value, avant=document.getElementById("volsavant").value;
       var ok=!!(a&&b&&a.metro_iata&&b.metro_iata&&a.id!==b.id);
       [gf,sk,ky,ex].forEach(function(l){ if(!ok){ l.removeAttribute("href"); l.setAttribute("aria-disabled","true"); l.style.opacity=".5"; } else { l.removeAttribute("aria-disabled"); l.style.opacity=""; } });
       if(!ok){ if(note) note.textContent=""; return; }
@@ -6469,16 +6475,16 @@ vmbCnCfH5TJKTBFva0O4Wl+l/Ix13xO6KCJPD5H51fete+aO/R8EyzZRoN8BAA==`,Et;function Mr
       function pick(cs,metro){ return (cs.coches.length===0||cs.coches.length===cs.total) ? {liste:[metro],un:metro} : {liste:cs.coches,un:cs.coches.length===1?cs.coches[0]:metro}; }
       var O=pick(cd,a.metro_iata), D=pick(ca,b.metro_iata), dv=/^\d{4}-\d{2}-\d{2}$/.test(d);
       var cg={premium:" premium economy",business:" business class",first:" first class"}[c]||"";
-      gf.href="https://www.google.com/travel/flights?hl=fr&q="+encodeURIComponent("Flights from "+O.liste.join(" or ")+" to "+D.liste.join(" or ")+(dv?" on "+d:"")+(direct?" nonstop":"")+(n>1?" for "+n+" adults":"")+cg+(apres?" departing after "+h12(apres):"")+(avant?" arriving before "+h12(avant):""));
+      gf.href="https://www.google.com/travel/flights?hl=fr&q="+encodeURIComponent("Flights from "+O.liste.join(" or ")+" to "+D.liste.join(" or ")+(dv?" on "+d:"")+(drv?" returning "+dr:"")+(direct?" nonstop":"")+(n>1?" for "+n+" adults":"")+cg+(apres?" departing after "+h12(apres):"")+(avant?" arriving before "+h12(avant):""));
       var cs={economy:"economy",premium:"premiumeconomy",business:"business",first:"first"}[c]||"economy";
-      sk.href="https://www.skyscanner.fr/transport/vols/"+O.un.toLowerCase()+"/"+D.un.toLowerCase()+"/"+(dv?d.slice(2,4)+d.slice(5,7)+d.slice(8,10)+"/":"")+"?adultsv2="+n+"&cabinclass="+cs+(direct?"&preferdirects=true":"");
-      ky.href="https://www.kayak.fr/flights/"+O.liste.join(",")+"-"+D.liste.join(",")+"/"+(dv?d+"/":"")+n+"adults"+({premium:"/premium",business:"/business",first:"/first"}[c]||"")+(direct?"?fs=stops=0":"");
+      sk.href="https://www.skyscanner.fr/transport/vols/"+O.un.toLowerCase()+"/"+D.un.toLowerCase()+"/"+(dv?d.slice(2,4)+d.slice(5,7)+d.slice(8,10)+"/":"")+(drv?dr.slice(2,4)+dr.slice(5,7)+dr.slice(8,10)+"/":"")+"?adultsv2="+n+"&cabinclass="+cs+(direct?"&preferdirects=true":"");
+      ky.href="https://www.kayak.fr/flights/"+O.liste.join(",")+"-"+D.liste.join(",")+"/"+(dv?d+"/":"")+(drv?dr+"/":"")+n+"adults"+({premium:"/premium",business:"/business",first:"/first"}[c]||"")+(direct?"?fs=stops=0":"");
       var opt=[]; if(c!=="economy") opt.push("cabinclass:"+({premium:"premium_economy",business:"business",first:"first"}[c])); if(direct) opt.push("maxhops:0");
-      ex.href="https://www.expedia.com/Flights-Search?trip=oneway&leg1=from:"+O.un+",to:"+D.un+(dv?",departure:"+d.slice(5,7)+"/"+d.slice(8,10)+"/"+d.slice(0,4)+"TANYT":"")+"&passengers=adults:"+n+"&mode=search"+(opt.length?"&options="+opt.join(","):"");
+      ex.href="https://www.expedia.com/Flights-Search?trip="+(drv?"roundtrip":"oneway")+"&leg1=from:"+O.un+",to:"+D.un+(dv?",departure:"+d.slice(5,7)+"/"+d.slice(8,10)+"/"+d.slice(0,4)+"TANYT":"")+(drv?"&leg2=from:"+D.un+",to:"+O.un+",departure:"+dr.slice(5,7)+"/"+dr.slice(8,10)+"/"+dr.slice(0,4)+"TANYT":"")+"&passengers=adults:"+n+"&mode=search"+(opt.length?"&options="+opt.join(","):"");
       if(note){
         var multi=(cd.coches.length>1&&cd.coches.length<cd.total)||(ca.coches.length>1&&ca.coches.length<ca.total);
         var reste=[]; if(apres) reste.push("départ après "+apres); if(avant) reste.push("arrivée avant "+avant); if(multi) reste.push("choix de plusieurs aéroports (Skyscanner et Expedia prennent la métropole)");
-        note.textContent="Transmis : trajet, "+(dv?"date, ":"")+n+(n>1?" voyageurs":" voyageur")+", classe"+(direct?", vol direct":"")+(O.un!==a.metro_iata||D.un!==b.metro_iata||O.liste.length>1||D.liste.length>1?", aéroports":"")+"."+(apres||avant?" Heures : transmises à Google Flights seulement.":"")+(multi?" Plusieurs aéroports : Google Flights et Kayak les reçoivent, Skyscanner et Expedia prennent la métropole.":"");
+        note.textContent="Transmis : "+(rt?(drv?"aller-retour, dates, ":"aller-retour (ajoutez la date du retour), "):"trajet, ")+(dv&&!rt?"date, ":"")+n+(n>1?" voyageurs":" voyageur")+", classe"+(direct?", vol direct":"")+(O.un!==a.metro_iata||D.un!==b.metro_iata||O.liste.length>1||D.liste.length>1?", aéroports":"")+"."+(apres||avant?" Heures : transmises à Google Flights seulement.":"")+(multi?" Plusieurs aéroports : Google Flights et Kayak les reçoivent, Skyscanner et Expedia prennent la métropole.":"");
       }
     }
     f.addEventListener("input",majLiens); f.addEventListener("change",majLiens);
@@ -6919,6 +6925,29 @@ vmbCnCfH5TJKTBFva0O4Wl+l/Ix13xO6KCJPD5H51fete+aO/R8EyzZRoN8BAA==`,Et;function Mr
   var enClaude=!!(window.claude && window.claude.use);
   vols.classList.toggle("vd-sanscl",!enClaude);
   if(!enClaude){ var p=document.querySelector(".vd-titre p"); if(p) p.textContent="Indiquez votre trajet, puis ouvrez la recherche sur Google Flights, Skyscanner, Kayak ou Expedia : tout ce que vous renseignez ici est repris sur le site."; }
+  // aller simple ou aller-retour
+  var form=document.getElementById("volsform"), trips=document.querySelectorAll(".vd-trip button"), ret=document.getElementById("vdretour"), dret=document.getElementById("volsretour"), ddate=document.getElementById("volsdate");
+  function trip(t){
+    form.dataset.trip=t; Array.prototype.forEach.call(trips,function(b){ b.setAttribute("aria-pressed",String(b.dataset.trip===t)); });
+    ret.hidden=(t!=="retour"); document.getElementById("vddatelib").textContent=(t==="retour"?"Date de l'aller":"Date du vol");
+    document.getElementById("volsretourbtn").hidden=(t!=="retour");
+    document.getElementById("volschercher").textContent=(t==="retour"?"Chercher l'aller avec mes connecteurs Claude":"Chercher avec mes connecteurs Claude");
+    document.getElementById("vdconnectnote").textContent=(t==="retour"?"La recherche par connecteurs est un aller simple : cherchez l'aller, puis le retour.":"Prix et horaires réels dans cette page (Expedia et eDreams).");
+    if(t==="retour" && ddate.value && (!dret.value || dret.value<ddate.value)){ var d=new Date(ddate.value+"T12:00:00"); d.setDate(d.getDate()+7); dret.value=d.toISOString().slice(0,10); }
+    form.dispatchEvent(new Event("change",{bubbles:true}));
+  }
+  Array.prototype.forEach.call(trips,function(b){ b.addEventListener("click",function(){ trip(b.dataset.trip); }); });
+  ddate.addEventListener("change",function(){ dret.min=ddate.value||""; if(form.dataset.trip==="retour" && ddate.value && dret.value && dret.value<ddate.value) dret.value=ddate.value; });
+  document.getElementById("volsretourbtn").addEventListener("click",function(){
+    var de=document.getElementById("volsde"), vers=document.getElementById("volsvers"), a=de.value, b=vers.value, r=dret.value;
+    de.value=b; vers.value=a; if(r) ddate.value=r; trip("aller"); de.dispatchEvent(new Event("change",{bubbles:true})); form.requestSubmit();
+  });
+  form.dataset.trip="aller";
+  // le volet est central : Échap ou un clic à l'extérieur le ferme, le premier champ prend le focus à l'ouverture
+  function fermer(){ document.getElementById("volsfermer").click(); }
+  document.addEventListener("keydown",function(e){ if(e.key==="Escape" && !vols.hidden) fermer(); });
+  document.addEventListener("mousedown",function(e){ if(vols.hidden||vols.contains(e.target)||e.target.closest("#outilvol,#volsbtn")) return; fermer(); });
+  new MutationObserver(function(){ if(!vols.hidden) setTimeout(function(){ document.getElementById("volsde").focus(); },50); }).observe(vols,{attributes:true,attributeFilter:["hidden"]});
   sync();
 })();
 </script>
