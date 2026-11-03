@@ -5564,6 +5564,7 @@ vmbCnCfH5TJKTBFva0O4Wl+l/Ix13xO6KCJPD5H51fete+aO/R8EyzZRoN8BAA==`,Et;function Mr
     etat.hidden=true; rendreJours(); recalculer(); ensemble(); majSources(); programmer();
     if(VILLES_VOL.length>=2) volsRemplir();
     CTX_VILLES={};      // les données de la ville quittée sont libérées : elles se rechargent au retour, mais la mémoire reste celle d'une seule ville
+    if(cible.od){ window.__odTouch(cible); setTimeout(odAuto,300); }
     annonce("Ville affichée : "+cible.nom);
   }
 
@@ -6412,10 +6413,10 @@ vmbCnCfH5TJKTBFva0O4Wl+l/Ix13xO6KCJPD5H51fete+aO/R8EyzZRoN8BAA==`,Et;function Mr
      le reste de l'application (trajets, étapes, budget, rapport) les lit comme ceux d'une ville préparée. */
   var OD_CUR={US:"USD",EC:"USD",PA:"USD",SV:"USD",PR:"USD",CA:"CAD",GB:"GBP",CH:"CHF",LI:"CHF",MX:"MXN",JP:"JPY",CN:"CNY",IN:"INR",BR:"BRL",AR:"ARS",CL:"CLP",CO:"COP",PE:"PEN",UY:"UYU",BO:"BOB",PY:"PYG",VE:"VES",CR:"CRC",GT:"GTQ",HN:"HNL",NI:"NIO",DO:"DOP",CU:"CUP",JM:"JMD",AU:"AUD",NZ:"NZD",TH:"THB",VN:"VND",ID:"IDR",MY:"MYR",SG:"SGD",PH:"PHP",KR:"KRW",TW:"TWD",HK:"HKD",KH:"KHR",LA:"LAK",MM:"MMK",LK:"LKR",NP:"NPR",PK:"PKR",BD:"BDT",TR:"TRY",EG:"EGP",MA:"MAD",TN:"TND",DZ:"DZD",ZA:"ZAR",KE:"KES",TZ:"TZS",ET:"ETB",NG:"NGN",GH:"GHS",SN:"XOF",CI:"XOF",AE:"AED",SA:"SAR",QA:"QAR",IL:"ILS",JO:"JOD",IS:"ISK",NO:"NOK",SE:"SEK",DK:"DKK",PL:"PLN",CZ:"CZK",HU:"HUF",RO:"RON",BG:"BGN",RS:"RSD",UA:"UAH",RU:"RUB",KZ:"KZT",UZ:"UZS",GE:"GEL",AM:"AMD",AL:"ALL",MK:"MKD",BA:"BAM"};
   "AT BE HR CY EE FI FR DE GR IE IT LV LT LU MT NL PT SK SI ES AD MC SM VA ME XK".split(" ").forEach(function(p){ OD_CUR[p]="EUR"; });
-  var OD={idx:null,villes:null,slices:new Map(),taille:0,foot:{},acc:{},conc:2,actifs:0,attente:[],file:Promise.resolve(),parcs:true,minuteur:null};
+  var OD={idx:null,villes:null,slices:new Map(),taille:0,foot:{},acc:{},conc:3,actifs:0,attente:[],file:Promise.resolve(),parcs:true,minuteur:null};
   var OD_B="https://overturemaps-us-west-2.s3.amazonaws.com/", OD_DC=0.01, OD_CACHE_MAX=350*1048576;
-  var OD_TH={bati:"building",routes:"segment",lieux:"place",eau:"water",usage:"land_use",quartiers:"division"};
-  var OD_COLS={bati:["id","bbox","height","num_floors","geometry"],routes:["id","bbox","class","subtype","names","geometry"],
+  var OD_TH={bati:"building",routes:"segment",noms:"segment",lieux:"place",eau:"water",usage:"land_use",quartiers:"division"};
+  var OD_COLS={bati:["id","bbox","height","num_floors","geometry"],routes:["id","bbox","class","subtype","geometry"],noms:["id","bbox","class","subtype","names","geometry"],
     lieux:["id","bbox","names","basic_category","confidence","geometry","websites","phones","addresses"],eau:["id","bbox","subtype","class","names","geometry"],usage:["id","bbox","class","subtype","names","geometry"],quartiers:["id","bbox","subtype","names","geometry"]};
   var OD_VEDETTES=["Mexico","Paris","New York","Tokyo","Istanbul","Lisbonne","Marrakech","Rome","Londres","Buenos Aires","Bangkok","Sydney"];
   var OD_LIB={bati:"Bâtiments",routes:"Rues",lieux:"Lieux",eau:"Eau",quartiers:"Quartiers"};
@@ -6509,14 +6510,7 @@ vmbCnCfH5TJKTBFva0O4Wl+l/Ix13xO6KCJPD5H51fete+aO/R8EyzZRoN8BAA==`,Et;function Mr
     for(i=i0;i<=i1;i++) for(j=j0;j<=j1;j++){ var k=i+"_"+j; if(!O.charge[k]){ cibles[k]=1; nc++; } }
     if(!nc) return null;
     var G=O.GR, m=0.004, W=[G.lon0+i0*G.dc-m,G.lat0+j0*G.dc-m,G.lon0+(i1+1)*G.dc+m,G.lat0+(j1+1)*G.dc+m];
-    var res=await Promise.all(["bati","routes","lieux","eau","quartiers"].map(function(cle){ return odLire(cle,W).then(function(r){ odProg(OD_LIB[cle]+" : "+r.length.toLocaleString("fr-FR")+" éléments lus ("+((OD.acc[cle]||0)/1e6).toFixed(1).replace(".",",")+" Mo)"); return r; }); }));
-    var qNouveaux=0;
-    res[4].forEach(function(x){
-      if(x.id==null||O.ids["q"+x.id]||!x.geometry||x.geometry.type!=="Point") return; var nm=x.names&&x.names.primary; if(!nm) return;
-      var lon=x.geometry.coordinates[0], lat=x.geometry.coordinates[1], e={n:nm,lon:Math.round(lon*1e5)/1e5,lat:Math.round(lat*1e5)/1e5};
-      if(x.subtype==="neighborhood"||x.subtype==="macrohood"){ O.ids["q"+x.id]=1; O.quart.push(e); qNouveaux++; }
-      else if(x.subtype==="locality"||x.subtype==="borough"||x.subtype==="localadmin"){ O.ids["q"+x.id]=1; O.arr.push(e); qNouveaux++; }
-    });
+    var res=await Promise.all(["bati","routes","lieux"].map(function(cle){ return odLire(cle,W).then(function(r){ odProg(OD_LIB[cle]+" : "+r.length.toLocaleString("fr-FR")+" éléments lus ("+((OD.acc[cle]||0)/1e6).toFixed(1).replace(".",",")+" Mo)"); return r; }); }));
     var bat={}, rou={}, lab={}, axes=[], KXo=O.kx;
     res[0].forEach(function(x){
       var g=x.geometry; if(!g) return; var P=g.type==="Polygon"?[g.coordinates]:g.type==="MultiPolygon"?g.coordinates:[];
@@ -6535,23 +6529,15 @@ vmbCnCfH5TJKTBFva0O4Wl+l/Ix13xO6KCJPD5H51fete+aO/R8EyzZRoN8BAA==`,Et;function Mr
       L.forEach(function(co){
         var e=odEnc(co); if(!e) return; var k=odCle(O,co[0][0],co[0][1]); if(!cibles[k]) return;
         (rou[k]||(rou[k]=[])).push([ci,e]); if(ci<=3) axes.push([ci,e]);
-        var nm=x.names&&x.names.primary;
-        if(nm && ci<=6){
-          var len=0; for(var a=1;a<co.length;a++) len+=Math.hypot(co[a][0]-co[a-1][0],co[a][1]-co[a-1][1]);
-          if(len>0.0008){ var lk=lab[k]||(lab[k]={}), cur=lk[nm];
-            if(!cur||len>cur[0]) lk[nm]=[len,[nm,ci,Math.round(co[0][0]*1e5),Math.round(co[0][1]*1e5),Math.round(co[co.length-1][0]*1e5),Math.round(co[co.length-1][1]*1e5)]]; }
-        }
       });
     });
     Object.keys(cibles).forEach(function(k){
       O.charge[k]=1; var c={};
       if(bat[k]){ var fb={b:bat[k]}; O.files["b_"+k+".json"]=fb; c.b=JSON.stringify(fb).length; }
-      if(rou[k]){ var ls=lab[k]?Object.keys(lab[k]).map(function(n){ return lab[k][n]; }).sort(function(a,b){ return b[0]-a[0]; }).slice(0,160).map(function(t){ return t[1]; }):[];
-        var fr={r:rou[k],l:ls}; O.files["r_"+k+".json"]=fr; c.r=JSON.stringify(fr).length; }
+      if(rou[k]){ var fr={r:rou[k],l:[]}; O.files["r_"+k+".json"]=fr; c.r=JSON.stringify(fr).length; }
       if(c.b||c.r) O.GR.cellules[k]=c;
     });
     O.axes=O.axes.concat(axes);
-    var nEau=odGeo(O,"eau",res[3],function(x){ return x.subtype||"water"; });
     // lieux : mêmes champs et mêmes types que les villes préparées
     var nouveaux=[];
     res[2].forEach(function(x){
@@ -6566,7 +6552,44 @@ vmbCnCfH5TJKTBFva0O4Wl+l/Ix13xO6KCJPD5H51fete+aO/R8EyzZRoN8BAA==`,Et;function Mr
       e.q=(cf>=0.9&&e.w)?3:cf>=0.7?2:1; e._s=cf+(e.w?0.2:0);
       O.lieux.push(e); nouveaux.push(e);
     });
-    return {axes:axes,lieux:nouveaux,eau:nEau>0,zones:true,quartiers:qNouveaux>0};
+    return {axes:axes,lieux:nouveaux,cibles:Object.keys(cibles),W:W};
+  }
+  // noms de rues : lus après l'affichage des rues (colonne la plus lourde) puis ajoutés aux cellules et à l'étiquetage
+  async function odNoms(O,nv){
+    if(!nv||!nv.cibles||!nv.cibles.length) return;
+    var rows=await odLire("noms",nv.W), cibles={}, lab={};
+    nv.cibles.forEach(function(k){ cibles[k]=1; });
+    rows.forEach(function(x){
+      var nm=x.names&&x.names.primary; if(x.subtype!=="road"||!nm||!x.geometry) return; var ci=odClasse(x.class); if(ci>6) return; var g=x.geometry;
+      var L=g.type==="LineString"?[g.coordinates]:g.type==="MultiLineString"?g.coordinates:[];
+      L.forEach(function(co){
+        var k=odCle(O,co[0][0],co[0][1]); if(!cibles[k]) return; var len=0;
+        for(var a=1;a<co.length;a++) len+=Math.hypot(co[a][0]-co[a-1][0],co[a][1]-co[a-1][1]);
+        if(len<=0.0008) return; var lk=lab[k]||(lab[k]={}), cur=lk[nm];
+        if(!cur||len>cur[0]) lk[nm]=[len,[nm,ci,Math.round(co[0][0]*1e5),Math.round(co[0][1]*1e5),Math.round(co[co.length-1][0]*1e5),Math.round(co[co.length-1][1]*1e5)]];
+      });
+    });
+    var actif=(VILLE.od===O);
+    Object.keys(lab).forEach(function(k){
+      var f=O.files["r_"+k+".json"]; if(!f) return;
+      var ls=Object.keys(lab[k]).map(function(n){ return lab[k][n]; }).sort(function(a,b){ return b[0]-a[0]; }).slice(0,160).map(function(t){ return t[1]; });
+      f.l=ls;
+      if(actif && CEL[k] && CEL[k].r){ ls.forEach(function(e){ RUES.push({n:e[0],cl:CLASSES[e[1]],axe:e[1]<=3,A:[e[2]/1e5,e[3]/1e5],B:[e[4]/1e5,e[5]/1e5]}); }); }
+    });
+    if(actif) programmer();
+  }
+  // eau, cours d'eau nommés et quartiers : lus après l'affichage des rues et des bâtiments
+  async function odSecondaire(O,nv){
+    if(!nv||!nv.W) return;
+    var res=await Promise.all(["eau","quartiers"].map(function(cle){ return odLire(cle,nv.W).then(function(r){ odProg(OD_LIB[cle]+" : "+r.length.toLocaleString("fr-FR")+" éléments lus ("+((OD.acc[cle]||0)/1e6).toFixed(1).replace(".",",")+" Mo)"); return r; }); }));
+    res[1].forEach(function(x){
+      if(x.id==null||O.ids["q"+x.id]||!x.geometry||x.geometry.type!=="Point") return; var nm=x.names&&x.names.primary; if(!nm) return;
+      var lon=x.geometry.coordinates[0], lat=x.geometry.coordinates[1], e={n:nm,lon:Math.round(lon*1e5)/1e5,lat:Math.round(lat*1e5)/1e5};
+      if(x.subtype==="neighborhood"||x.subtype==="macrohood"){ O.ids["q"+x.id]=1; O.quart.push(e); }
+      else if(x.subtype==="locality"||x.subtype==="borough"||x.subtype==="localadmin"){ O.ids["q"+x.id]=1; O.arr.push(e); }
+    });
+    var n=odGeo(O,"eau",res[0],function(x){ return x.subtype||"water"; });
+    odAppliquer(O,{eau:n>0});
   }
   async function odParcs(O,i0,j0,i1,j1){
     var G=O.GR, m=0.004, W=[G.lon0+i0*G.dc-m,G.lat0+j0*G.dc-m,G.lon0+(i1+1)*G.dc+m,G.lat0+(j1+1)*G.dc+m];
@@ -6597,7 +6620,8 @@ vmbCnCfH5TJKTBFva0O4Wl+l/Ix13xO6KCJPD5H51fete+aO/R8EyzZRoN8BAA==`,Et;function Mr
     O.preparation=odEnfile(async function(){
       var ci=Math.floor((v.lon-O.GR.lon0)/O.GR.dc), cj=Math.floor((v.lat-O.GR.lat0)/O.GR.dc);
       OD.acc={}; await odIndex();
-      var nv=await odCharger(O,ci-1,cj-1,ci+1,cj+1);
+      var nv=await odCharger(O,ci,cj,ci,cj);
+      odSecondaire(O,nv).catch(function(){}); odNoms(O,nv).catch(function(){});
       var top=O.lieux.filter(function(e){ return e.t==="m"; }).sort(function(a,b){ return b._s-a._s; }).slice(0,30);
       O.reperes=top.map(function(e){ return {n:e.n,lon:e.lon,lat:e.lat,ar:"od"}; });
       O.pret=true;
@@ -6610,15 +6634,33 @@ vmbCnCfH5TJKTBFva0O4Wl+l/Ix13xO6KCJPD5H51fete+aO/R8EyzZRoN8BAA==`,Et;function Mr
     var O=VILLE.od, c=carte.getCenter(), ci=Math.floor((c.lng-O.GR.lon0)/O.GR.dc), cj=Math.floor((c.lat-O.GR.lat0)/O.GR.dc);
     var manque=false; for(var a=-1;a<=1;a++) for(var b=-1;b<=1;b++) if(!O.charge[(ci+a)+"_"+(cj+b)]) manque=true;
     if(!manque || O.auto) return; O.auto=true;
-    odEnfile(async function(){ var nv=await odCharger(O,ci-1,cj-1,ci+1,cj+1); odAppliquer(O,nv);
+    odEnfile(async function(){ var nv=await odCharger(O,ci-1,cj-1,ci+1,cj+1); odAppliquer(O,nv); odSecondaire(O,nv).catch(function(){}); odNoms(O,nv).catch(function(){});
       if(OD.parcs) odParcs(O,ci-1,cj-1,ci+1,cj+1).then(function(vert){ odAppliquer(O,{vert:vert}); }).catch(function(){}); })
       .catch(function(e){ etat.hidden=false; etat.textContent="Chargement de la zone impossible : "+e.message; setTimeout(function(){ etat.hidden=true; },5000); })
       .finally(function(){ O.auto=false; });
   }
   carte.on("moveend",function(){ clearTimeout(OD.minuteur); OD.minuteur=setTimeout(odAuto,350); });
+  window.__odTouch=function(v){ if(v&&v.od){ v.od.dernier=Date.now(); odHistoSauver(); } };
   window.__odDbg=function(dlon){ if(dlon) carte.jumpTo({center:[carte.getCenter().lng+dlon,carte.getCenter().lat]}); var O=VILLE.od; return O?{charge:Object.keys(O.charge).length,cellules:Object.keys(O.GR.cellules).length,lieux:O.lieux.length,quartiers:O.quart.length,arrondissements:O.arr.length,zones:O.zones.length,pret:O.pret,zoom:carte.getZoom()}:null; };
   // création de la ville dans la liste ; données chargées à l'ouverture (changerVille)
-  function odCreerVille(e){
+  var OD_MAX=10, OD_CLE="od-historique";
+  function odHistoSauver(){
+    try{ var l=VILLES.filter(function(v){ return v.od; }).sort(function(a,b){ return b.od.dernier-a.od.dernier; }).slice(0,OD_MAX).map(function(v){ return [v.nom,v.pays,v.lon,v.lat,v.od.dernier]; });
+      localStorage.setItem(OD_CLE,JSON.stringify(l)); }catch(x){}
+  }
+  // ne garde que les 10 villes générées les plus récemment utilisées (la ville affichée n'est jamais retirée)
+  function odElaguer(){
+    var ods=VILLES.filter(function(v){ return v.od; }).sort(function(a,b){ return a.od.dernier-b.od.dernier; }), retirees=[];
+    for(var i=0;ods.length-retirees.length>OD_MAX && i<ods.length;i++){
+      var v=ods[i]; if(v.id===VILLE.id) continue;
+      var k=VILLES.indexOf(v); if(k>=0) VILLES.splice(k,1);
+      var opt=document.querySelector('#ville option[value="'+v.id+'"]'); if(opt) opt.remove();
+      effacerVilleStock(v.id); delete CTX_VILLES[v.id]; retirees.push(v.nom);
+    }
+    if(retirees.length){ annonce("Historique limité à "+OD_MAX+" villes générées : "+retirees.join(", ")+" retirée"+(retirees.length>1?"s":"")+" de la liste."); }
+    odHistoSauver();
+  }
+  function odCreerVille(e,silencieux){
     var nom=String(e[0]).slice(0,60), cc=String(e[1]||"").slice(0,3), lon=+e[2], lat=+e[3];
     if(!isFinite(lon)||!isFinite(lat)||Math.abs(lon)>180||Math.abs(lat)>85) return null;
     var id="od-"+odSlug(nom)+"-"+cc.toLowerCase()+"-"+Math.round(Math.abs(lon)*10)+(lon<0?"w":"e"), ex=null;
@@ -6632,9 +6674,11 @@ vmbCnCfH5TJKTBFva0O4Wl+l/Ix13xO6KCJPD5H51fete+aO/R8EyzZRoN8BAA==`,Et;function Mr
       limites:[[lon-0.6,lat-0.45],[lon+0.6,lat+0.45]],shards:["od"],zone_taxi:null,gtfs_mention:"Overture Maps (pas de transports en commun)",feries:[],depart:[],
       devise_code:dev,taxi_devise:"EUR",od:O,notes_hotels:{tripadvisor:nom+", "+cc,booking:nom},
       note_transport:"Destination construite à la demande : pas de transports en commun, trajets à pied et en taxi uniquement (taxi estimé en euros, tarif générique). Les horaires d'ouverture ne sont pas disponibles : à saisir dans les fiches."};
+    v.od.dernier=+e[4]>0?+e[4]:Date.now();
     VILLES.push(v);
     var sel=document.getElementById("ville"), opt=document.createElement("option"); opt.value=id; opt.textContent=nom;
     var autre=sel.querySelector('option[value="__od__"]'); sel.insertBefore(opt,autre);
+    if(!silencieux) odElaguer();
     return v;
   }
   // fichiers « virtuels » d'une destination, lus par le reste de l'application comme ceux d'une ville préparée
@@ -6705,6 +6749,8 @@ vmbCnCfH5TJKTBFva0O4Wl+l/Ix13xO6KCJPD5H51fete+aO/R8EyzZRoN8BAA==`,Et;function Mr
     var bg=document.getElementById("odgen"); if(bg) bg.addEventListener("click",ouvrir);
     window.__odOuvrir=ouvrir; window.__odCreer=odCreerVille;
   })();
+  // à l'ouverture : retrouve l'historique des villes générées (sans recharger leurs données)
+  (function(){ try{ var l=JSON.parse(localStorage.getItem(OD_CLE)||"[]"); if(Array.isArray(l)) l.slice(0,OD_MAX).sort(function(a,b){ return (+a[4]||0)-(+b[4]||0); }).forEach(function(e){ if(Array.isArray(e)&&e.length>=4) odCreerVille(e,true); }); }catch(x){} })();
 })();
 </script>
 
