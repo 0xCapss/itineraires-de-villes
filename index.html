@@ -70,6 +70,8 @@ body{background:var(--papier);color:var(--encre);font-family:var(--corps);font-s
 .visuel-cache{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 .appli{display:flex;height:100%;min-height:0}
+.vols-liens{display:grid;gap:6px;margin-top:4px}.vols-liens .rang{display:flex;flex-wrap:wrap;gap:6px}
+a.lien-vol{display:inline-block;text-decoration:none;color:var(--encre);text-align:center}
 .boiteg{padding:12px 16px 4px}
 .boiteg-titre{font-family:var(--chiffres);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:500;color:var(--encre-3);margin:0 0 8px}
 .boiteg-liste{list-style:none;margin:0;padding:0;display:grid;gap:8px}
@@ -693,6 +695,15 @@ a.btn{text-decoration:none;display:inline-block}
           <label>Taux de change (1 € en $, facultatif) <input class="champ court" type="text" inputmode="decimal" id="volstaux" placeholder="ex. 1,10"></label>
         </div>
         <div class="rang"><button type="submit" class="btn primaire" id="volschercher">Chercher des vols</button></div>
+        <div class="vols-liens">
+          <span class="sous">Ou chercher ce trajet sur un site (nouvel onglet, sans les connecteurs) :</span>
+          <div class="rang">
+            <a class="btn petit lien-vol" id="lienvolgf" target="_blank" rel="noopener noreferrer">Google Flights</a>
+            <a class="btn petit lien-vol" id="lienvolsk" target="_blank" rel="noopener noreferrer">Skyscanner</a>
+            <a class="btn petit lien-vol" id="lienvolky" target="_blank" rel="noopener noreferrer">Kayak</a>
+            <a class="btn petit lien-vol" id="lienvolex" target="_blank" rel="noopener noreferrer">Expedia</a>
+          </div>
+        </div>
       </form>
       <div class="optim" id="volsetat" role="status">Recherche dans Expedia (dollars américains) et eDreams (euros), via vos connecteurs.</div>
       <ul class="vols-liste" id="volsliste"></ul>
@@ -6389,6 +6400,31 @@ vmbCnCfH5TJKTBFva0O4Wl+l/Ix13xO6KCJPD5H51fete+aO/R8EyzZRoN8BAA==`,Et;function Mr
   });
   document.addEventListener("keydown",function(e){ if(e.key==="Escape" && bulle) fermerBulle(); });
 
+  /* ---------- recherche du trajet sur des sites de vols (liens pré-remplis) ---------- */
+  (function(){
+    var f=document.getElementById("volsform"); if(!f) return;
+    var gf=document.getElementById("lienvolgf"), sk=document.getElementById("lienvolsk"), ky=document.getElementById("lienvolky"), ex=document.getElementById("lienvolex");
+    function majLiens(){
+      var a=villeVol(document.getElementById("volsde").value), b=villeVol(document.getElementById("volsvers").value);
+      var d=document.getElementById("volsdate").value, n=parseInt(document.getElementById("volsadultes").value,10)||1, c=document.getElementById("volsclasse").value;
+      var ok=!!(a&&b&&a.metro_iata&&b.metro_iata&&a.id!==b.id);
+      [gf,sk,ky,ex].forEach(function(l){ if(!ok){ l.removeAttribute("href"); l.setAttribute("aria-disabled","true"); l.style.opacity=".5"; } else { l.removeAttribute("aria-disabled"); l.style.opacity=""; } });
+      if(!ok) return;
+      var A=a.metro_iata, B=b.metro_iata, dv=/^\d{4}-\d{2}-\d{2}$/.test(d);
+      var cg={premium:" premium economy",business:" business class",first:" first class"}[c]||"";
+      gf.href="https://www.google.com/travel/flights?hl=fr&q="+encodeURIComponent("Flights from "+A+" to "+B+(dv?" on "+d:"")+(n>1?" for "+n+" adults":"")+cg);
+      var cs={economy:"economy",premium:"premiumeconomy",business:"business",first:"first"}[c]||"economy";
+      sk.href="https://www.skyscanner.fr/transport/vols/"+A.toLowerCase()+"/"+B.toLowerCase()+"/"+(dv?d.slice(2,4)+d.slice(5,7)+d.slice(8,10)+"/":"")+"?adultsv2="+n+"&cabinclass="+cs;
+      ky.href="https://www.kayak.fr/flights/"+A+"-"+B+"/"+(dv?d+"/":"")+n+"adults"+({premium:"/premium",business:"/business",first:"/first"}[c]||"");
+      ex.href="https://www.expedia.com/Flights-Search?trip=oneway&leg1=from:"+A+",to:"+B+(dv?",departure:"+d.slice(5,7)+"/"+d.slice(8,10)+"/"+d.slice(0,4)+"TANYT":"")+"&passengers=adults:"+n+"&mode=search"+(c==="economy"?"":"&options=cabinclass:"+({premium:"premium_economy",business:"business",first:"first"}[c]));
+    }
+    f.addEventListener("input",majLiens); f.addEventListener("change",majLiens);
+    document.getElementById("volsinverser").addEventListener("click",function(){ setTimeout(majLiens,0); });
+    new MutationObserver(majLiens).observe(document.getElementById("vols"),{attributes:true,attributeFilter:["hidden"]});
+    new MutationObserver(majLiens).observe(document.getElementById("volsde"),{childList:true});
+    majLiens(); setTimeout(majLiens,800);
+    Array.prototype.forEach.call([gf,sk,ky,ex],function(l){ l.addEventListener("click",function(ev){ if(l.getAttribute("aria-disabled")==="true") ev.preventDefault(); }); });
+  })();
   /* ---------- lieux sur la carte pendant l'ajout d'une étape, et relief 3D ---------- */
   var RELIEF=false, poiMin=null;
   function poiCouches(){
