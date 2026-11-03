@@ -459,6 +459,27 @@ a.btn{text-decoration:none;display:inline-block}
 .b-actions{display:flex;gap:8px;flex-wrap:wrap;padding:2px 14px 0}
 .b-actions:empty{display:none}
 .maplibregl-popup{z-index:8}
+/* charte unifiée : style du formulaire de réservation de vol, étendu à toute l'application */
+:root{--primaire:var(--ardoise);--sur-primaire:var(--sur-ardoise)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--primaire:var(--ardoise);--sur-primaire:var(--sur-ardoise)}}
+:root[data-theme="dark"]{--primaire:var(--ardoise);--sur-primaire:var(--sur-ardoise)}
+.btn{font-size:14px;padding:11px 18px;border-radius:12px;border:1.5px solid var(--filet);background:var(--carte);color:var(--encre)}
+.btn:hover{border-color:var(--ardoise)}
+.btn.primaire{background:var(--ardoise);color:var(--sur-ardoise);border-color:var(--ardoise)}
+.btn.primaire:hover{filter:brightness(1.08);border-color:var(--ardoise)}
+.btn.discret{border-color:transparent;background:transparent;padding:8px 10px}
+.btn.petit{padding:7px 13px;font-size:12.5px;border-radius:10px}
+.champ{font-size:15px;padding:11px 12px;border-radius:10px;border:1.5px solid var(--filet);background:var(--papier)}
+.champ.court{font-size:13.5px;padding:8px 10px}
+.champ:focus,.champ:focus-visible{border-color:var(--ardoise);outline:2px solid color-mix(in srgb,var(--ardoise) 35%,transparent);outline-offset:0}
+.cartouche .champ{font-size:13.5px;padding:8px 10px;border-width:1px}
+.ajout{border-radius:20px;padding:20px 22px}
+.ajout-tete h3{font-size:22px}
+.onglets{gap:6px}.onglets button{font-size:13.5px;padding:9px 14px;border-width:1.5px}
+.onglets button[aria-pressed="true"]{background:var(--ardoise);color:var(--sur-ardoise);border-color:var(--ardoise)}
+.optim,.vol{border-radius:16px}
+.entete-liste h2{font-size:22px}
+.resultats{border-radius:14px;border-width:1.5px}
 </style>
 <div class="appli">
   <aside class="rail">
