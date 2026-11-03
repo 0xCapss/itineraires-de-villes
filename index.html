@@ -70,6 +70,16 @@ body{background:var(--papier);color:var(--encre);font-family:var(--corps);font-s
 .visuel-cache{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 .appli{display:flex;height:100%;min-height:0}
+.boiteg{padding:12px 16px 4px}
+.boiteg-titre{font-family:var(--chiffres);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:500;color:var(--encre-3);margin:0 0 8px}
+.boiteg-liste{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.outil{display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;padding:11px 14px;border:1.5px solid var(--filet);border-radius:12px;background:var(--carte);color:var(--encre);cursor:pointer;text-align:left;font:inherit;min-height:56px}
+.outil:hover:not([disabled]){border-color:var(--ardoise)}.outil:focus-visible{outline:2px solid var(--ardoise);outline-offset:2px}
+.outil[aria-expanded="true"]{background:var(--ardoise);color:var(--sur-ardoise);border-color:var(--ardoise)}
+.outil[disabled]{opacity:.5;cursor:default}
+.outil-num{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:600 12px/1 var(--chiffres);border:1.5px solid currentColor}
+.outil-ico{flex:none;display:grid;place-items:center}
+.outil-txt{display:grid;gap:1px;min-width:0}.outil-txt strong{font-size:15px;font-weight:600}.outil-txt small{font-size:12px;opacity:.75;line-height:1.3}
 .od-modal{position:fixed;inset:0;z-index:70;background:rgba(15,28,43,.55);display:grid;place-items:center;padding:16px}.od-modal[hidden]{display:none}
 .od-boite{background:var(--carte);color:var(--encre);border-radius:18px;padding:18px 20px;width:min(560px,100%);max-height:90vh;overflow:auto;display:grid;gap:10px;box-shadow:0 18px 44px rgba(15,28,43,.35)}
 #odgen{font:inherit;font-size:12.5px;font-weight:600;color:var(--cart-txt);background:transparent;border:1.5px solid var(--cart-filet);border-radius:999px;padding:5px 14px;cursor:pointer;margin-top:8px}#odgen:hover{border-color:var(--signal);color:var(--signal)}#odgen:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
@@ -433,6 +443,14 @@ a.btn{text-decoration:none;display:inline-block}
       </div>
     </header>
     <div class="alerte avert" id="fluxalerte" role="note" hidden></div>
+
+    <section class="boiteg" aria-label="Boîte à outils du voyage">
+      <h2 class="boiteg-titre">Boîte à outils</h2>
+      <ol class="boiteg-liste">
+        <li><button type="button" class="outil" id="outilvol" aria-expanded="false" aria-controls="vols"><span class="outil-num" aria-hidden="true">1</span><span class="outil-ico"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></span><span class="outil-txt"><strong>Réservation vol</strong><small>Vols entre villes</small></span></button></li>
+        <li><button type="button" class="outil" id="outilact" aria-expanded="false" aria-controls="ajout"><span class="outil-num" aria-hidden="true">2</span><span class="outil-ico"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V4M6 5h12l-2.6 4L18 13H6"/></svg></span><span class="outil-txt"><strong>Activités</strong><small>Monuments, restaurants, hôtels, créer une activité</small></span></button></li>
+      </ol>
+    </section>
 
     <div class="entete-liste">
       <h2>Étapes</h2>
@@ -6346,6 +6364,7 @@ vmbCnCfH5TJKTBFva0O4Wl+l/Ix13xO6KCJPD5H51fete+aO/R8EyzZRoN8BAA==`,Et;function Mr
   }
   // lieu proposé (zone accessible ou recherche) : pas encore dans la journée
   function bulleBase(b){
+    if(VILLE.od && b._r!==undefined && !b.det){ odDetails(b).then(function(ok){ if(ok) bulleBase(b); }); }
     var typ=TYPE_DE[b.t]||"autre", date=JOURS[jourActif].date, faux={id:b.i,nom:b.n}, notes=[];
     if(b.t==="h" && nivCourt(b)) notes.push(nivCourt(b).replace(/^ · /,""));
     if(b.tz!==undefined && ZONE.calc) notes.push("À "+zoneDuree(b.tz)+" depuis l'étape de départ");
@@ -6356,6 +6375,7 @@ vmbCnCfH5TJKTBFva0O4Wl+l/Ix13xO6KCJPD5H51fete+aO/R8EyzZRoN8BAA==`,Et;function Mr
   }
   function ajouterDepuisBase(b){
     if(!b || dejaAjoute(b)) return;
+    if(VILLE.od && b._r!==undefined && !b.det){ odDetails(b).then(function(ok){ if(!ok) return; var e=null; etapes.forEach(function(x){ if(x.id===b.i) e=x; }); if(e){ if(b.a) e.adresse=b.a; if(b.w) e.site="https://"+b.w; if(b.p) e.tel=b.p; sauver(); rendreTout(); } }); }
     var typ=TYPE_DE[b.t];
     ajouter({uid:"o"+b.i+Date.now().toString(36),nom:b.n,type:typ,cat:etiquetteCat(b.c,b.t),origine:"overture",id:b.i,
       adresse:b.a||null,site:b.w?"https://"+b.w:null,tel:b.p||null,lon:b.lon,lat:b.lat,visite:DUREES[typ]});
@@ -6417,7 +6437,7 @@ vmbCnCfH5TJKTBFva0O4Wl+l/Ix13xO6KCJPD5H51fete+aO/R8EyzZRoN8BAA==`,Et;function Mr
   var OD_B="https://overturemaps-us-west-2.s3.amazonaws.com/", OD_DC=0.01, OD_CACHE_MAX=350*1048576;
   var OD_TH={bati:"building",routes:"segment",noms:"segment",lieux:"place",eau:"water",usage:"land_use",quartiers:"division"};
   var OD_COLS={bati:["id","bbox","height","num_floors","geometry"],routes:["id","bbox","class","subtype","geometry"],noms:["id","bbox","class","subtype","names","geometry"],
-    lieux:["id","bbox","names","basic_category","confidence","geometry","websites","phones","addresses"],eau:["id","bbox","subtype","class","names","geometry"],usage:["id","bbox","class","subtype","names","geometry"],quartiers:["id","bbox","subtype","names","geometry"]};
+    lieux:["id","bbox","names","basic_category","confidence","geometry"],eau:["id","bbox","subtype","class","names","geometry"],usage:["id","bbox","class","subtype","names","geometry"],quartiers:["id","bbox","subtype","names","geometry"]};
   var OD_VEDETTES=["Mexico","Paris","New York","Tokyo","Istanbul","Lisbonne","Marrakech","Rome","Londres","Buenos Aires","Bangkok","Sydney"];
   var OD_LIB={bati:"Bâtiments",routes:"Rues",lieux:"Lieux",eau:"Eau",quartiers:"Quartiers"};
   function odProg(t){ var st=document.getElementById("odetat"), m=document.getElementById("odmodal"); if(st && m && !m.hidden) st.textContent=t; if(etat && !etat.hidden) etat.textContent=t; }
@@ -6432,14 +6452,22 @@ vmbCnCfH5TJKTBFva0O4Wl+l/Ix13xO6KCJPD5H51fete+aO/R8EyzZRoN8BAA==`,Et;function Mr
     var r=await fetch(url,{headers:{Range:"bytes=0-0"}});
     if(!r.ok && r.status!==206) throw new Error("HTTP "+r.status);
     var cr=r.headers.get("content-range"); if(!cr) throw new Error("en-tête Content-Range non exposé");
-    var len=+cr.split("/")[1];
-    return {byteLength:len,slice:async function(a,b){
+    var len=+cr.split("/")[1], lot=[], minu=null;
+    function garder(k,buf){ OD.slices.set(k,buf); OD.taille+=buf.byteLength; for(var it=OD.slices.keys(); OD.taille>OD_CACHE_MAX; ){ var kk=it.next().value; if(kk==null||kk===k) break; OD.taille-=OD.slices.get(kk).byteLength; OD.slices.delete(kk); } }
+    // les colonnes d'un groupe de lignes sont demandées ensemble : les morceaux séparés de moins de 192 Ko sont lus d'un coup (beaucoup moins de requêtes)
+    async function envoyer(){
+      var l=lot; lot=[]; minu=null; l.sort(function(p,q){ return p.a-q.a; });
+      var gr=[]; l.forEach(function(it){ var g=gr[gr.length-1]; if(g && it.a-g.b<=196608){ g.items.push(it); if(it.b>g.b) g.b=it.b; } else gr.push({a:it.a,b:it.b,items:[it]}); });
+      await Promise.all(gr.map(async function(g){
+        try{ var x=await fetch(url,{headers:{Range:"bytes="+g.a+"-"+(g.b-1)}}); if(!x.ok && x.status!==206) throw new Error("HTTP "+x.status);
+          var buf=await x.arrayBuffer(); OD.acc[th]=(OD.acc[th]||0)+buf.byteLength;
+          g.items.forEach(function(it){ var s=buf.slice(it.a-g.a,it.b-g.a); garder(url+"|"+it.a+"|"+it.b,s); it.ok(s); });
+        }catch(e){ g.items.forEach(function(it){ it.ko(e); }); } }));
+    }
+    return {byteLength:len,slice:function(a,b){
       b=b==null?len:b; var k=url+"|"+a+"|"+b, h=OD.slices.get(k);
-      if(h){ OD.slices.delete(k); OD.slices.set(k,h); return h; }
-      var x=await fetch(url,{headers:{Range:"bytes="+a+"-"+(b-1)}}); if(!x.ok && x.status!==206) throw new Error("HTTP "+x.status);
-      var buf=await x.arrayBuffer(); OD.acc[th]=(OD.acc[th]||0)+buf.byteLength; OD.slices.set(k,buf); OD.taille+=buf.byteLength;
-      for(var it=OD.slices.keys(); OD.taille>OD_CACHE_MAX; ){ var kk=it.next().value; if(kk==null||kk===k) break; OD.taille-=OD.slices.get(kk).byteLength; OD.slices.delete(kk); }
-      return buf; }};
+      if(h){ OD.slices.delete(k); OD.slices.set(k,h); return Promise.resolve(h); }
+      return new Promise(function(ok,ko){ lot.push({a:a,b:b,ok:ok,ko:ko}); if(!minu) minu=setTimeout(envoyer,3); }); }};
   }
   function odFichier(url,th){
     if(!OD.foot[url]) OD.foot[url]=(async function(){ var f=await odTampon(url,th), md=await PQ.parquetMetadataAsync(f); return {f:f,md:md}; })().catch(function(e){ delete OD.foot[url]; throw e; });
@@ -6459,7 +6487,7 @@ vmbCnCfH5TJKTBFva0O4Wl+l/Ix13xO6KCJPD5H51fete+aO/R8EyzZRoN8BAA==`,Et;function Mr
       for(var q=0;q<taches[i][1].length;q++){
         var pl=taches[i][1][q]; await odCreneau();
         try{ await PQ.parquetRead({file:o.f,metadata:o.md,compressors:PQ.compressors,columns:OD_COLS[cle],rowStart:pl[0],rowEnd:pl[1],rowFormat:"object",
-          onComplete:function(rows){ for(var k=0;k<rows.length;k++){ var x=rows[k], b=x.bbox; if(b && b.xmin<=W[2] && b.xmax>=W[0] && b.ymin<=W[3] && b.ymax>=W[1]) gardes.push(x); } }}); }
+          onComplete:function(rows){ for(var k=0;k<rows.length;k++){ var x=rows[k], b=x.bbox; if(b && b.xmin<=W[2] && b.xmax>=W[0] && b.ymin<=W[3] && b.ymax>=W[1]){ if(cle==="lieux"){ x._u=OD_B+th.p+taches[i][0]; x._r=pl[0]+k; } gardes.push(x); } } }}); }
         finally{ odLibere(); }
       }
     }
@@ -6546,10 +6574,8 @@ vmbCnCfH5TJKTBFva0O4Wl+l/Ix13xO6KCJPD5H51fete+aO/R8EyzZRoN8BAA==`,Et;function Mr
       var t=OD_TYPE[g]; if(t==="m" && (/^\d/.test(nm)||/\b(apartments?|condominiums?|condos?|lofts?|residences?|townhouses?)\b/i.test(nm))) return;
       O.ids["l"+x.id]=1;
       var e={n:nm,t:t,c:x.basic_category,lon:Math.round(x.geometry.coordinates[0]*1e5)/1e5,lat:Math.round(x.geometry.coordinates[1]*1e5)/1e5,i:odHash(String(x.id))};
-      var ad=x.addresses&&x.addresses[0]&&x.addresses[0].freeform; if(ad) e.a=ad;
-      var ph=x.phones&&x.phones[0]; if(ph) e.p=ph;
-      var ws=x.websites&&x.websites[0]; if(ws){ var w=String(ws).split("://").pop(); if(w.indexOf("www.")===0) w=w.slice(4); e.w=w.replace(/\/$/,""); }
-      e.q=(cf>=0.9&&e.w)?3:cf>=0.7?2:1; e._s=cf+(e.w?0.2:0);
+      e._u=x._u; e._r=x._r;
+      e.q=cf>=0.9?3:cf>=0.7?2:1; e._s=cf;
       O.lieux.push(e); nouveaux.push(e);
     });
     return {axes:axes,lieux:nouveaux,cibles:Object.keys(cibles),W:W};
@@ -6700,6 +6726,18 @@ vmbCnCfH5TJKTBFva0O4Wl+l/Ix13xO6KCJPD5H51fete+aO/R8EyzZRoN8BAA==`,Et;function Mr
     if(O.files[nom]) return Promise.resolve(O.files[nom]);
     return Promise.reject(new Error(u+" : introuvable"));
   }
+  // adresse, téléphone et site d'un lieu : lus dans le fichier d'origine quand on ouvre sa fiche ou qu'on l'ajoute
+  async function odDetails(b){
+    if(!VILLE.od || b.det || b._r===undefined || !b._u) return false; b.det=1;
+    try{ var o=await odFichier(b._u,"lieux"), res=null;
+      await PQ.parquetRead({file:o.f,metadata:o.md,compressors:PQ.compressors,columns:["addresses","websites","phones"],rowStart:b._r,rowEnd:b._r+1,rowFormat:"object",onComplete:function(r){ res=r[0]; }});
+      if(!res) return false;
+      var ad=res.addresses&&res.addresses[0]&&res.addresses[0].freeform; if(ad) b.a=ad;
+      var ph=res.phones&&res.phones[0]; if(ph) b.p=ph;
+      var ws=res.websites&&res.websites[0]; if(ws){ var w=String(ws).split("://").pop(); if(w.indexOf("www.")===0) w=w.slice(4); b.w=w.replace(/\/$/,""); }
+      return !!(b.a||b.p||b.w);
+    }catch(x){ return false; }
+  }
   // photos libres (Wikimedia Commons) des étapes d'une destination, une à la fois
   var odPhotos=[], odPhotoActive=false;
   function odPhoto(e){ if(!e || PHOTOS[e.id] || PHOTOS[e.uid]) return; odPhotos.push(e); if(!odPhotoActive) odPhotoSuivante(); }
@@ -6753,6 +6791,19 @@ vmbCnCfH5TJKTBFva0O4Wl+l/Ix13xO6KCJPD5H51fete+aO/R8EyzZRoN8BAA==`,Et;function Mr
   (function(){ try{ var l=JSON.parse(localStorage.getItem(OD_CLE)||"[]"); if(Array.isArray(l)) l.slice(0,OD_MAX).sort(function(a,b){ return (+a[4]||0)-(+b[4]||0); }).forEach(function(e){ if(Array.isArray(e)&&e.length>=4) odCreerVille(e,true); }); }catch(x){} })();
 })();
 </script>
+<script>
+(function(){
+  var vol=document.getElementById("outilvol"), act=document.getElementById("outilact");
+  var volsBtn=document.getElementById("volsbtn"), vols=document.getElementById("vols"), ouvrir=document.getElementById("ouvrir"), ajout=document.getElementById("ajout");
+  if(!vol||!act) return;
+  function etat(){ vol.setAttribute("aria-expanded",String(!!vols && !vols.hidden)); act.setAttribute("aria-expanded",String(!!ajout && !ajout.hidden)); vol.disabled=!volsBtn || volsBtn.hidden; if(vol.disabled) vol.title="La recherche de vols demande au moins deux villes préparées avec un aéroport"; }
+  vol.addEventListener("click",function(){ if(volsBtn && !volsBtn.hidden){ volsBtn.click(); if(vols && !vols.hidden) vols.scrollIntoView({block:"nearest"}); } });
+  act.addEventListener("click",function(){ ouvrir.click(); if(ajout && !ajout.hidden) ajout.scrollIntoView({block:"nearest"}); });
+  var o=new MutationObserver(etat); [vols,ajout,volsBtn].forEach(function(n){ if(n) o.observe(n,{attributes:true,attributeFilter:["hidden"]}); });
+  etat(); setTimeout(etat,1500);
+})();
+</script>
+
 
 </body></html>
 
