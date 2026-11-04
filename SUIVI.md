@@ -9,6 +9,7 @@ Dernière mise à jour : 4 novembre 2026.
 - Boîte à outils des activités : 8 types, filtre, création d'une activité sur la carte.
 - Génération d'une ville à la demande (Mexico) : cellules voisines, quartiers et lieux chargés, ville sélectionnée dans la liste, historique limité à 10 villes et conservé après rechargement.
 - `index.html` correspond à `build.py`.
+- Les scripts `scripts/index_overture.py` et `scripts/villes_overture.py` reproduisent à l'identique `data/index_overture.json.wasm` et `data/villes_20k.json` (essai du 4 novembre 2026, données d'Overture Maps version 2026-10-21.0).
 
 ## Mesuré à la main pendant le développement (non automatisé)
 
