@@ -3,7 +3,7 @@
      le reste de l'application (trajets, étapes, budget, rapport) les lit comme ceux d'une ville préparée. */
   var OD_CUR={US:"USD",EC:"USD",PA:"USD",SV:"USD",PR:"USD",CA:"CAD",GB:"GBP",CH:"CHF",LI:"CHF",MX:"MXN",JP:"JPY",CN:"CNY",IN:"INR",BR:"BRL",AR:"ARS",CL:"CLP",CO:"COP",PE:"PEN",UY:"UYU",BO:"BOB",PY:"PYG",VE:"VES",CR:"CRC",GT:"GTQ",HN:"HNL",NI:"NIO",DO:"DOP",CU:"CUP",JM:"JMD",AU:"AUD",NZ:"NZD",TH:"THB",VN:"VND",ID:"IDR",MY:"MYR",SG:"SGD",PH:"PHP",KR:"KRW",TW:"TWD",HK:"HKD",KH:"KHR",LA:"LAK",MM:"MMK",LK:"LKR",NP:"NPR",PK:"PKR",BD:"BDT",TR:"TRY",EG:"EGP",MA:"MAD",TN:"TND",DZ:"DZD",ZA:"ZAR",KE:"KES",TZ:"TZS",ET:"ETB",NG:"NGN",GH:"GHS",SN:"XOF",CI:"XOF",AE:"AED",SA:"SAR",QA:"QAR",IL:"ILS",JO:"JOD",IS:"ISK",NO:"NOK",SE:"SEK",DK:"DKK",PL:"PLN",CZ:"CZK",HU:"HUF",RO:"RON",BG:"BGN",RS:"RSD",UA:"UAH",RU:"RUB",KZ:"KZT",UZ:"UZS",GE:"GEL",AM:"AMD",AL:"ALL",MK:"MKD",BA:"BAM"};
   "AT BE HR CY EE FI FR DE GR IE IT LV LT LU MT NL PT SK SI ES AD MC SM VA ME XK".split(" ").forEach(function(p){ OD_CUR[p]="EUR"; });
-  var OD={idx:null,villes:null,slices:new Map(),taille:0,foot:{},acc:{},conc:3,actifs:0,attente:[],file:Promise.resolve(),parcs:true,minuteur:null};
+  var OD={idx:null,villes:null,slices:new Map(),taille:0,foot:{},acc:{},conc:(navigator.deviceMemory && navigator.deviceMemory<=4)?2:3,actifs:0,attente:[],file:Promise.resolve(),parcs:true,minuteur:null};
   var OD_B="https://overturemaps-us-west-2.s3.amazonaws.com/", OD_DC=0.01, OD_CACHE_MAX=350*1048576;
   var OD_TH={bati:"building",routes:"segment",noms:"segment",lieux:"place",eau:"water",usage:"land_use",quartiers:"division"};
   var OD_COLS={bati:["id","bbox","height","num_floors","geometry"],routes:["id","bbox","class","subtype","geometry"],noms:["id","bbox","class","subtype","names","geometry"],
@@ -11,12 +11,26 @@
   var OD_VEDETTES=["Mexico","Paris","New York","Tokyo","Istanbul","Lisbonne","Marrakech","Rome","Londres","Buenos Aires","Bangkok","Sydney"];
   var OD_LIB={bati:"Bâtiments",routes:"Rues",lieux:"Lieux",eau:"Eau",quartiers:"Quartiers"};
   function odProg(t){ var st=document.getElementById("odetat"), m=document.getElementById("odmodal"); if(st && m && !m.hidden) st.textContent=t; if(etat && !etat.hidden) etat.textContent=t; }
-  function odVilles(){ if(!OD.villes){ try{ OD.villes=JSON.parse(document.getElementById("od-villes").textContent); }catch(e){ OD.villes=[]; } } return OD.villes; }
+  // les données lourdes (liste des villes, index d'Overture Maps, lecteur parquet) ne sont chargées qu'à la première utilisation de « Générer une ville »
+  function odVilles(){ return OD.villes||[]; }
+  function odVillesCharger(){
+    if(!OD.villesP) OD.villesP=fetch("data/villes_20k.json").then(function(r){ if(!r.ok) throw new Error("liste des villes : HTTP "+r.status); return r.json(); })
+      .then(function(v){ OD.villes=v; return v; }).catch(function(e){ OD.villesP=null; throw e; });
+    return OD.villesP;
+  }
   async function odIndex(){
     if(OD.idx) return OD.idx;
-    var bin=Uint8Array.from(atob(document.getElementById("od-idx").textContent.trim()),function(c){ return c.charCodeAt(0); });
-    OD.idx=JSON.parse(await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream("gzip"))).text()); return OD.idx;
+    var r=await fetch("data/index_overture.json.wasm"); if(!r.ok) throw new Error("index des fichiers : HTTP "+r.status);
+    var b=new Uint8Array(await r.arrayBuffer());      // le serveur peut avoir déjà décompressé
+    OD.idx=JSON.parse(b[0]===0x1f && b[1]===0x8b ? await new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream("gzip"))).text() : new TextDecoder().decode(b));
+    return OD.idx;
   }
+  function odPQ(){
+    if(typeof PQ!=="undefined") return Promise.resolve();
+    if(!OD.pqP) OD.pqP=new Promise(function(ok,ko){ var sc=document.createElement("script"); sc.src="vendor/pq.js"; sc.onload=function(){ ok(); }; sc.onerror=function(){ OD.pqP=null; ko(new Error("lecteur de fichiers : chargement impossible")); }; document.head.appendChild(sc); });
+    return OD.pqP;
+  }
+  function odPret(){ return Promise.all([odIndex(),odPQ()]); }
   // lecture par morceaux d'un fichier distant ; les octets déjà reçus sont gardés (les zones voisines relisent les mêmes groupes de lignes)
   async function odTampon(url,th){
     var r=await fetch(url,{headers:{Range:"bytes=0-0"}});
@@ -26,8 +40,7 @@
     function garder(k,buf){ OD.slices.set(k,buf); OD.taille+=buf.byteLength; for(var it=OD.slices.keys(); OD.taille>OD_CACHE_MAX; ){ var kk=it.next().value; if(kk==null||kk===k) break; OD.taille-=OD.slices.get(kk).byteLength; OD.slices.delete(kk); } }
     // les colonnes d'un groupe de lignes sont demandées ensemble : les morceaux séparés de moins de 192 Ko sont lus d'un coup (beaucoup moins de requêtes)
     async function envoyer(){
-      var l=lot; lot=[]; minu=null; l.sort(function(p,q){ return p.a-q.a; });
-      var gr=[]; l.forEach(function(it){ var g=gr[gr.length-1]; if(g && it.a-g.b<=196608){ g.items.push(it); if(it.b>g.b) g.b=it.b; } else gr.push({a:it.a,b:it.b,items:[it]}); });
+      var gr=Purs.fusionnerPlages(lot,196608); lot=[]; minu=null;
       await Promise.all(gr.map(async function(g){
         try{ var x=await fetch(url,{headers:{Range:"bytes="+g.a+"-"+(g.b-1)}}); if(!x.ok && x.status!==206) throw new Error("HTTP "+x.status);
           var buf=await x.arrayBuffer(); OD.acc[th]=(OD.acc[th]||0)+buf.byteLength;
@@ -46,12 +59,7 @@
   function odCreneau(){ return new Promise(function(ok){ if(OD.actifs<OD.conc){ OD.actifs++; ok(); } else OD.attente.push(ok); }); }
   function odLibere(){ var n=OD.attente.shift(); if(n) n(); else OD.actifs--; }
   async function odLire(cle,W){
-    var idx=await odIndex(), th=idx[OD_TH[cle]], gardes=[], taches=[];
-    th.f.forEach(function(e){
-      var s=0, hit=[];
-      e[1].forEach(function(g){ if(g[0]<=W[2]*100 && g[2]>=W[0]*100 && g[1]<=W[3]*100 && g[3]>=W[1]*100) hit.push([s,s+g[4]]); s+=g[4]; });
-      if(hit.length) taches.push([e[0],hit]);
-    });
+    var idx=await odIndex(), th=idx[OD_TH[cle]], gardes=[], taches=Purs.groupesTouches(th.f,W);
     for(var i=0;i<taches.length;i++){
       var o=await odFichier(OD_B+th.p+taches[i][0],cle);
       for(var q=0;q<taches[i][1].length;q++){
@@ -64,29 +72,9 @@
     return gardes;
   }
   function odCle(O,lon,lat){ return Math.floor((lon-O.GR.lon0)/O.GR.dc)+"_"+Math.floor((lat-O.GR.lat0)/O.GR.dc); }
-  function odEnc(co){
-    var pts=[], p, i;
-    for(i=0;i<co.length;i++){ p=[Math.round(co[i][0]*1e5),Math.round(co[i][1]*1e5)]; if(!pts.length || p[0]!==pts[pts.length-1][0] || p[1]!==pts[pts.length-1][1]) pts.push(p); }
-    if(pts.length<2) return null;
-    var f=[pts[0][0],pts[0][1]]; for(i=1;i<pts.length;i++) f.push(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);
-    return f;
-  }
-  function odAire(ring,kx){ var s=0; for(var i=0;i<ring.length-1;i++) s+=ring[i][0]*ring[i+1][1]-ring[i+1][0]*ring[i][1]; return Math.abs(s/2)*kx*111200; }
-  function odClasse(c){ var i=CLASSES.indexOf(c); if(i>=0) return i; return (c==="parking_aisle"||c==="driveway"||c==="alley") ? 7 : c==="bridleway" ? 12 : 15; }
-  function odHash(s){ var h=2166136261; for(var i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return ("00000000"+(h>>>0).toString(16)).slice(-8); }
-  function odSlug(s){ return norm(s).replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,30)||"ville"; }
+  // fonctions pures : voir src/js/purs.js (testées dans tests/unitaires/)
+  var odEnc=Purs.encoderLigne, odAire=Purs.aireM2, odClasse=Purs.classeRoute, odHash=Purs.hash8, odSlug=Purs.slug, odGroupe=Purs.groupeLieu;
   var OD_TYPE={histoire:"m",musee:"m",nature:"m",spectacle:"m",resto:"r",cafe:"r",hotel:"h"};
-  function odGroupe(c){
-    c=c||"";
-    if(/^(hotel|lodging|hostel|motel|resort|bed_and_breakfast|inn|boutique_hotel)$/.test(c)) return "hotel";
-    if(/(^|_)(cafe|coffee_shop|coffee|bar|pub|brewery|tea_room|wine_bar|cocktail_bar)(_|$)/.test(c)) return "cafe";
-    if(/restaurant|casual_eatery|eatery|bakery|pizza|diner|food_court/.test(c)) return "resto";
-    if(/museum|art_gallery|gallery|cultural_center|library/.test(c)) return "musee";
-    if(/historic|monument|landmark|memorial|castle|cathedral|place_of_worship|church|temple|mosque|synagogue|lighthouse|bridge/.test(c)) return "histoire";
-    if(/^(park|public_plaza|plaza|beach|zoo|aquarium|botanical_garden|garden|observation_deck|nature_reserve|playground)/.test(c)) return "nature";
-    if(/theat|concert|opera|performing|music_venue|stadium|arena|amusement|skating|cinema|sports_and_recreation/.test(c)) return "spectacle";
-    return null;
-  }
   function odGeo(O,cle,rows,filtre){
     var fc=O.geo[cle], n=0, et=cle==="eau"?"e":"v";
     rows.forEach(function(x){
@@ -109,7 +97,7 @@
     if(!nc) return null;
     var G=O.GR, m=0.004, W=[G.lon0+i0*G.dc-m,G.lat0+j0*G.dc-m,G.lon0+(i1+1)*G.dc+m,G.lat0+(j1+1)*G.dc+m];
     var res=await Promise.all(["bati","routes","lieux"].map(function(cle){ return odLire(cle,W).then(function(r){ odProg(OD_LIB[cle]+" : "+r.length.toLocaleString("fr-FR")+" éléments lus ("+((OD.acc[cle]||0)/1e6).toFixed(1).replace(".",",")+" Mo)"); return r; }); }));
-    var bat={}, rou={}, lab={}, axes=[], KXo=O.kx;
+    var bat={}, rou={}, axes=[], KXo=O.kx;
     res[0].forEach(function(x){
       var g=x.geometry; if(!g) return; var P=g.type==="Polygon"?[g.coordinates]:g.type==="MultiPolygon"?g.coordinates:[];
       var h=x.height>0?Math.round(x.height):(x.num_floors>0?Math.round(x.num_floors*3.2):9);
@@ -215,7 +203,7 @@
     if(O.preparation) return O.preparation;
     O.preparation=odEnfile(async function(){
       var ci=Math.floor((v.lon-O.GR.lon0)/O.GR.dc), cj=Math.floor((v.lat-O.GR.lat0)/O.GR.dc);
-      OD.acc={}; await odIndex();
+      OD.acc={}; await odPret();
       var nv=await odCharger(O,ci,cj,ci,cj);
       odSecondaire(O,nv).catch(function(){}); odNoms(O,nv).catch(function(){});
       var top=O.lieux.filter(function(e){ return e.t==="m"; }).sort(function(a,b){ return b._s-a._s; }).slice(0,30);
@@ -331,11 +319,13 @@
     var sel=document.getElementById("ville"), modal=document.getElementById("odmodal"), q=document.getElementById("odq"), res=document.getElementById("odres"), st=document.getElementById("odetat");
     if(!sel||!modal) return;
     function liste(){
-      var f=norm(q.value).trim(), V=odVilles(), l;
+      var V=odVilles();
+      if(!V.length){ res.innerHTML='<li class="sous">Chargement de la liste des villes…</li>'; odVillesCharger().then(liste,function(e){ res.innerHTML='<li class="sous">Liste des villes indisponible : '+esc(e.message)+'</li>'; }); return; }
+      var f=norm(q.value).trim(), l;
       l=f ? V.filter(function(v){ return norm(v[0]).indexOf(f)>=0; }).slice(0,10) : OD_VEDETTES.map(function(n){ return V.filter(function(v){ return v[0]===n; })[0]; }).filter(Boolean);
       res.innerHTML=l.map(function(v,i){ return '<li><button type="button" class="btn" data-od="'+V.indexOf(v)+'">'+esc(v[0])+' <span class="sous">('+esc(v[1])+(v[4]?", "+nf(v[4]/1000)+" 000 hab.":"")+')</span></button></li>'; }).join("")||'<li class="sous">Aucune ville de plus de 20 000 habitants ne correspond.</li>';
     }
-    function ouvrir(){ modal.hidden=false; document.querySelector(".appli").inert=true; st.textContent=""; q.value=""; liste(); q.focus(); }
+    function ouvrir(){ odPret().catch(function(){}); modal.hidden=false; document.querySelector(".appli").inert=true; st.textContent=""; q.value=""; liste(); q.focus(); }
     function fermer(){ modal.hidden=true; document.querySelector(".appli").inert=false; sel.value=VILLE.id; }
     async function choisir(e){
       var v=odCreerVille(e); if(!v) return;

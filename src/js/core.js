@@ -1096,7 +1096,7 @@
     var psel=document.getElementById("pact"), dsel=document.getElementById("pduree");
     if(!psel.options.length){
       psel.innerHTML=ACT_TOUT.map(function(a){ return '<option value="'+a.id+'">'+esc(a.lib)+'</option>'; }).join("");
-      var vus={}; dsel.innerHTML=OPTIONS_DUREE.map(function(m){ return '<option value="'+m+'">'+duree(m)+'</option>'; }).join("");
+      dsel.innerHTML=OPTIONS_DUREE.map(function(m){ return '<option value="'+m+'">'+duree(m)+'</option>'; }).join("");
       psel.addEventListener("change",function(){ appliquerActivite(ACT_PAR_ID[psel.value]); });
     }
     var dev=VILLE.devise_code||"";
@@ -3477,7 +3477,6 @@
     etatRapport("Mise en page du document…"); await pause();
     var doc=new JsPDF({unit:"mm",format:"a4",compress:true}), PW=210, PH=297, M=14, BAS=PH-16, y=0;
     var TX=function(s,x,yy,opt){ doc.text(pdfT(s),x,yy,opt); }, W_=function(s,w){ return doc.splitTextToSize(pdfT(s),w); };
-    function sy(id){ return ctxVilles[id] && ctxVilles[id].TARIF ? ctxVilles[id].TARIF.devise : undefined; }      // symbole monétaire de la ville du jour ou du total
     function police(taille,style,coul){ doc.setFont("helvetica",style||"normal"); doc.setFontSize(taille); var c=rgb(coul||"#1c1b18"); doc.setTextColor(c[0],c[1],c[2]); }
     function nouvellePage(titre){ doc.addPage(); y=M+2; if(titre){ police(8.5,"normal","#6b665c"); TX(titre,M,y); y+=7; } }
     function besoin(h,titre){ if(y+h>BAS) nouvellePage(titre); }
@@ -4298,16 +4297,6 @@
   });
   document.getElementById("budgetfermer").addEventListener("click",function(){ budPanneau.hidden=true; budBtn.setAttribute("aria-expanded","false"); budBtn.focus(); });
   // lignes pour le PDF : totaux par devise puis total converti
-  function budgetPourPDF(items){
-    var r=budResume(items), l=[];
-    r.tot.forEach(function(t){
-      var det=BUD_CATS.filter(function(c){ return t.cats[c]; }).map(function(c){ return c.toLowerCase()+" "+volsPrix(t.cats[c],t.devise); }).join(", ");
-      l.push({t:"Budget en "+t.devise+" : "+(t.estime?"~ ":"")+volsPrix(t.total,t.devise)+(det?" ("+det+")":""),gras:true});
-    });
-    if(r.devs.length>1 && r.conv && !r.conv.manquants.length) l.push({t:"Total converti en "+r.ref+" : ~ "+volsPrix(r.conv.total,r.ref)+" (taux saisis dans l'application, non vérifiés)"});
-    return l;
-  }
-
   /* ---------- filtres : recherche d'étapes (monuments, restaurants, hôtels) et hôtels suggérés par Booking.com ---------- */
   var FILTRES=filtreVide(), filtresCle="", fDet=document.getElementById("filtres");
   var CODE_TYPE={monument:"m",restaurant:"r",hotel:"h"};

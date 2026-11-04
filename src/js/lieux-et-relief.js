@@ -12,8 +12,11 @@
   function poiMaj(){
     var s=carte.getSource("poi"); if(!s) return;
     if(ajout.hidden || !base.length || ctxEmprunte){ s.setData(VIDE); return; }
-    var c=carte.getCenter(), pts=[];
+    if(carte.getZoom()<13.5){ s.setData(VIDE); return; }       // la couche ne s'affiche qu'à partir du zoom 14
+    var c=carte.getCenter(), pts=[], vue=carte.getBounds(), lw=vue.getEast()-vue.getWest(), lh=vue.getNorth()-vue.getSouth();
+    var x0=vue.getWest()-lw/2, x1=vue.getEast()+lw/2, y0=vue.getSouth()-lh/2, y1=vue.getNorth()+lh/2;     // la vue, élargie de moitié
     for(var i=0;i<base.length;i++){ var b=base[i];
+      if(b.lon<x0 || b.lon>x1 || b.lat<y0 || b.lat>y1) continue;
       if(onglet!=="tous" && TYPE_DE[b.t]!==onglet) continue;
       if(GROUPE && groupeDe(b)!==GROUPE) continue;
       var dx=(b.lon-c.lng)*KX, dy=(b.lat-c.lat)*KY; pts.push([dx*dx+dy*dy,b]); }
