@@ -6,10 +6,14 @@
   "scripts": {
     "build": "python3 build.py",
     "verifier-build": "python3 build.py --check",
-    "test": "node tests/run.js",
-    "test:sans-reseau": "SANS_RESEAU=1 node tests/run.js"
+    "test": "node --test tests/unitaires/*.test.js && node tests/run.js",
+    "test:sans-reseau": "SANS_RESEAU=1 node tests/run.js",
+    "test:unitaires": "node --test tests/unitaires/*.test.js",
+    "lint": "node tests/lint.js"
   },
   "devDependencies": {
+    "eslint": "^9.39.5",
+    "globals": "^17.14.0",
     "playwright": "^1.50.0"
   }
 }
