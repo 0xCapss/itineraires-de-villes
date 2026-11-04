@@ -1,0 +1,56 @@
+{
+ "sfo": {
+  "verifie": false,
+  "note": "Tarifs de référence saisis de mémoire, non vérifiés (aucun accès aux sites officiels depuis l'environnement de développement). Les transports en commun ne sont pas couverts pour cette ville : seuls la marche et le taxi sont estimés. À contrôler.",
+  "devise": "$",
+  "metro_bus": 3.0,
+  "taxi": {
+   "prise_en_charge": 3.5,
+   "surtaxe_mta": 0,
+   "amelioration": 0,
+   "par_km": 2.0,
+   "par_minute_lent": 0.7,
+   "seuil_lent_mph": 12,
+   "congestion_sud_96e": 0,
+   "peage_zone_sud_60e": 0,
+   "nuit": 0,
+   "pointe_semaine": 0
+  }
+ },
+ "van": {
+  "verifie": false,
+  "note": "Tarifs de référence saisis de mémoire, non vérifiés (aucun accès aux sites officiels depuis l'environnement de développement). Les transports en commun ne sont pas couverts pour cette ville : seuls la marche et le taxi sont estimés. À contrôler.",
+  "devise": "$",
+  "metro_bus": 3.3,
+  "taxi": {
+   "prise_en_charge": 3.75,
+   "surtaxe_mta": 0,
+   "amelioration": 0,
+   "par_km": 2.06,
+   "par_minute_lent": 0.8,
+   "seuil_lent_mph": 12,
+   "congestion_sud_96e": 0,
+   "peage_zone_sud_60e": 0,
+   "nuit": 0,
+   "pointe_semaine": 0
+  }
+ },
+ "mem": {
+  "verifie": false,
+  "note": "Tarifs de référence saisis de mémoire, non vérifiés (aucun accès aux sites officiels depuis l'environnement de développement). Les transports en commun ne sont pas couverts pour cette ville : seuls la marche et le taxi sont estimés. À contrôler.",
+  "devise": "$",
+  "metro_bus": 1.75,
+  "taxi": {
+   "prise_en_charge": 3.5,
+   "surtaxe_mta": 0,
+   "amelioration": 0,
+   "par_km": 1.4,
+   "par_minute_lent": 0.6,
+   "seuil_lent_mph": 12,
+   "congestion_sud_96e": 0,
+   "peage_zone_sud_60e": 0,
+   "nuit": 0,
+   "pointe_semaine": 0
+  }
+ }
+}
