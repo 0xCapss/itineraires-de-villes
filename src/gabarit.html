@@ -1,0 +1,362 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Itinéraires de ville</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>@@FILE:src/css/app.css@@@@FILE:src/css/charte.css@@</style>
+<div class="appli">
+  <aside class="rail">
+    <header class="cartouche">
+      <div class="entete">
+        <h1><label class="visuel-cache" for="ville">Ville</label><select id="ville" class="titre-ville"></select></h1>
+        <p>Itinéraire de la journée</p>
+        <button type="button" class="btn discret petit" id="odgen" title="Générer la carte de n'importe quelle ville du monde à partir des données ouvertes d'Overture Maps">Générer une ville</button>
+      </div>
+
+      <div class="jours" id="barrejours"><div class="jours-onglets" id="jours" role="tablist" aria-label="Journées de l'itinéraire"></div><span id="plusjour"></span></div>
+
+      <div class="date-jour">
+        <label for="datejour">Date de cette journée</label>
+        <input type="date" id="datejour" class="champ court">
+        <span id="jourlib" class="sous"></span>
+      </div>
+    </header>
+    <div class="alerte avert" id="fluxalerte" role="note" hidden></div>
+
+    <section class="boiteg" aria-label="Boîte à outils du voyage">
+      <h2 class="boiteg-titre">Boîte à outils</h2>
+      <ol class="boiteg-liste">
+        <li><button type="button" class="outil" id="outilvol" aria-expanded="false" aria-controls="vols"><span class="outil-num" aria-hidden="true">1</span><span class="outil-ico"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></span><span class="outil-txt"><strong>Réservation vol</strong><small>Vols entre villes</small></span></button></li>
+        <li><button type="button" class="outil" id="outilact" aria-expanded="false" aria-controls="ajout"><span class="outil-num" aria-hidden="true">2</span><span class="outil-ico"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V4M6 5h12l-2.6 4L18 13H6"/></svg></span><span class="outil-txt"><strong>Activités</strong><small>Monuments, restaurants, hôtels, créer une activité</small></span></button></li>
+      </ol>
+    </section>
+
+    <div class="entete-liste">
+      <h2>Étapes</h2>
+      <button type="button" class="btn primaire" id="ouvrir" aria-expanded="false" aria-controls="ajout">Ajouter une étape</button>
+    </div>
+
+    <section class="ajout" id="ajout" hidden aria-label="Ajouter une étape">
+      <div class="ajout-tete">
+        <h3>Ajouter une étape</h3>
+        <button type="button" class="btn discret" id="fermer">Fermer</button>
+      </div>
+      <details class="boite" id="boite" open>
+        <summary>Boîte à outils <span class="sous" id="boitenb"></span></summary>
+        <div class="boite-corps">
+          <span class="boite-titre">Activités de la ville</span>
+          <div class="tuiles" id="tuiles" role="group" aria-label="Activités présentes dans la ville"></div>
+          <p class="sous" id="groupeetat" role="status"></p>
+          <span class="boite-titre">Créer une activité</span>
+          <div class="tuiles creer" id="creer" role="group" aria-label="Créer une activité"></div>
+          <p class="sous">Choisissez un type, cliquez sur la carte pour le placer, puis complétez la fiche.</p>
+        </div>
+      </details>
+      <div class="autour zone" id="barreautour" hidden>
+        <div class="zone-centre">
+          <span class="zone-epingle" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+          <div class="zone-lieu"><span class="zone-etiquette">Lieu sélectionné</span><strong id="autourtitre"></strong></div>
+          <button type="button" class="btn discret petit" id="autourfin">Voir toute la ville</button>
+        </div>
+        <div class="zone-blocs">
+          <div class="zone-bloc zone-bleu" role="group" aria-label="Durée et moyen de déplacement">
+            <span class="zone-titre">Atteindre en</span>
+            <div class="zone-temps" id="zonetemps" role="group" aria-label="Durée du trajet"></div>
+            <div class="zone-choix" id="zonemodes" role="group" aria-label="Moyen de déplacement"></div>
+          </div>
+          <div class="zone-bloc zone-orange" role="group" aria-label="Catégories de lieux">
+            <span class="zone-titre">Trouver</span>
+            <div class="zone-choix" id="zonecats" role="group" aria-label="Catégories de lieux"></div>
+          </div>
+        </div>
+        <output id="rayonval" class="zone-etat" role="status" aria-live="polite"></output>
+      </div>
+      <div class="onglets" id="onglets">
+        <button type="button" data-type="tous" aria-pressed="true">Tous</button>
+        <button type="button" data-type="monument" aria-pressed="false">Monuments</button>
+        <button type="button" data-type="restaurant" aria-pressed="false">Restaurants</button>
+        <button type="button" data-type="hotel" aria-pressed="false">Hôtels</button>
+      </div>
+      <details class="filtres" id="filtres">
+        <summary>Filtres <span id="filtresnb"></span></summary>
+        <div class="filtres-corps">
+          <label id="fcat" hidden><span id="fcatlib">Catégorie</span> <select class="champ" id="fcatsel"></select></label>
+          <div class="rang">
+            <label class="coche"><input type="checkbox" id="fouvert"> Ouvert à</label>
+            <input class="champ court" type="time" id="fheure" aria-label="Heure d'ouverture demandée" disabled>
+          </div>
+          <label class="coche" id="finconnulib" hidden><input type="checkbox" id="finconnu" checked> Garder les lieux aux horaires inconnus</label>
+          <label class="coche"><input type="checkbox" id="fsite"> Avec site web</label>
+          <label class="coche"><input type="checkbox" id="ftel"> Avec téléphone</label>
+          <label>Trier par
+            <select class="champ" id="ftri"><option value="pertinence">Pertinence</option><option value="distance">Distance</option><option value="nom">Nom</option><option value="documentes">Lieux les mieux renseignés</option></select>
+          </label>
+          <button type="button" class="btn discret" id="freset" hidden>Réinitialiser les filtres</button>
+        </div>
+      </details>
+      <p class="sous" id="filtresetat" role="status"></p>
+      <label class="visuel-cache" for="q">Rechercher un lieu par son nom</label>
+      <input class="champ" id="q" type="search" placeholder="Nom d'un lieu" autocomplete="off">
+      <ul class="resultats" id="resultats"></ul>
+      <div class="pose"><button type="button" class="btn" id="poser">Placer un lieu sur la carte</button></div>
+      <form class="formpose" id="formpose" hidden>
+        <label>Nom du lieu
+          <input class="champ" id="pnom" type="text" maxlength="80" required autocomplete="off">
+        </label>
+        <div class="rang">
+          <label>Activité
+            <select class="champ" id="pact"></select>
+          </label>
+          <label>Durée
+            <select class="champ court" id="pduree"></select>
+          </label>
+        </div>
+        <div class="rang">
+          <label>Dépense prévue <span id="pdevise"></span>
+            <input class="champ court" id="pdep" type="text" inputmode="decimal" autocomplete="off" placeholder="0">
+          </label>
+          <label id="pnuitlib" hidden>Prix de la nuit <span id="pdevise2"></span>
+            <input class="champ court" id="pnuit" type="text" inputmode="decimal" autocomplete="off" placeholder="0">
+          </label>
+        </div>
+        <div class="rang">
+          <button type="submit" class="btn primaire">Ajouter à l'itinéraire</button>
+          <button type="button" class="btn" id="annulerpose">Annuler</button>
+        </div>
+      </form>
+    </section>
+
+    <ol class="etapes" id="etapes"><li class="vide-liste">Chargement de l'itinéraire…</li></ol>
+    <div class="recap" id="recap"></div>
+    <div class="optim" id="optim" role="status" hidden></div>
+    <div class="pied-liste">
+      <button type="button" class="btn" id="optimiser" disabled title="Réordonne les étapes pour réduire le temps de trajet, la première étape restant le départ">Optimiser l'ordre</button>
+      <button type="button" class="btn" id="rapport" title="Génère un document PDF avec le détail de chaque journée : plans, transports et tarifs">Rapport PDF</button>
+      <input type="text" class="champ" id="villedepart" style="width:210px" maxlength="60" placeholder="Ville de départ (vaccins)" autocomplete="address-level2" aria-label="Ville de départ, pour proposer dans le PDF des centres de vaccination proches de chez vous" title="Facultatif : le rapport PDF proposera des centres de vaccination près de cette ville">
+      <button type="button" class="btn" id="calendrier" title="Fichier de calendrier (.ics) avec les étapes et les vols de tout le voyage, à importer dans Google Agenda ou Apple Calendrier">Calendrier (.ics)</button>
+      <button type="button" class="btn" id="vpbtn" aria-expanded="false" aria-controls="voyagepanel" title="Enregistrer le voyage dans un fichier, l'ouvrir plus tard ou le partager avec un code">Enregistrer / ouvrir</button>
+      <button type="button" class="btn" id="hbbtn" aria-expanded="false" aria-controls="hotelbase" title="Hôtel de départ et de retour de chaque journée, avec des suggestions Booking.com">Hôtel de base</button>
+      <button type="button" class="btn" id="budgetbtn" aria-expanded="false" aria-controls="budget" title="Total des vols, de l'hébergement, des transports et des dépenses saisies">Budget</button>
+      <button type="button" class="btn" id="volsbtn" aria-expanded="false" aria-controls="vols" title="Cherche des vols entre les villes avec les connecteurs Expedia et eDreams">Vols entre villes</button>
+      <button type="button" class="btn discret" id="reinit">Vider cette journée</button>
+      <button type="button" class="btn discret danger" id="supprjour" hidden>Supprimer cette journée</button>
+    </div>
+    <div class="optim" id="rapportetat" role="status" hidden></div>
+    <section class="ajout" id="voyagepanel" hidden aria-label="Enregistrer ou ouvrir un voyage">
+      <div class="ajout-tete">
+        <h3>Enregistrer ou ouvrir un voyage</h3>
+        <button type="button" class="btn discret" id="vpfermer">Fermer</button>
+      </div>
+      <p style="margin:0 0 10px;font-size:12.5px;color:var(--encre-2);line-height:1.5">Le voyage n'est pas conservé quand vous fermez la page : enregistrez-le dans un fichier, ou copiez son code pour le garder ou l'envoyer. Il contient toutes les villes, les jours, les étapes, les réservations, les vols retenus et le budget.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
+        <button type="button" class="btn primaire" id="vpfichier">Enregistrer dans un fichier</button>
+        <button type="button" class="btn" id="vpouvrir">Ouvrir un fichier…</button>
+        <input type="file" id="vpinput" accept=".json,application/json" hidden>
+      </div>
+      <label style="display:block;font-size:12.5px;color:var(--encre-2)">Code du voyage (à copier, ou à coller pour ouvrir un voyage)
+        <textarea class="champ" id="vpcode" rows="3" spellcheck="false" autocomplete="off" style="margin-top:4px;font-family:var(--mono,monospace);font-size:11.5px"></textarea>
+      </label>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
+        <button type="button" class="btn" id="vpcopier">Créer et copier le code</button>
+        <button type="button" class="btn" id="vputiliser">Ouvrir ce code</button>
+      </div>
+      <div class="optim" id="vpetat" role="status" hidden></div>
+    </section>
+    <section class="ajout vols" id="hotelbase" hidden aria-label="Hôtel de base">
+      <div class="ajout-tete">
+        <h3>Hôtel de base</h3>
+        <button type="button" class="btn discret" id="hbfermer">Fermer</button>
+      </div>
+      <div id="hbactuel"></div>
+      <form class="formpose" id="hbform">
+        <div class="rang">
+          <label>Nuits : du <select class="champ court" id="hbjdu"></select></label>
+          <label>au <select class="champ court" id="hbjau"></select></label>
+        </div>
+        <div class="rang">
+          <label>Arrivée <input class="champ court" type="date" id="hbdu" required></label>
+          <label>Départ <input class="champ court" type="date" id="hbau" required></label>
+          <label>Voyageurs <select class="champ court" id="hbadultes"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+        </div>
+        <details class="filtres" id="hbfiltres">
+          <summary>Filtres Booking.com <span id="hbfiltresnb"></span></summary>
+          <div class="filtres-corps">
+            <div class="rang">
+              <label>Étoiles <select class="champ court" id="bfetoiles"><option value="">Toutes</option><option value="3">3 et plus</option><option value="4">4 et plus</option><option value="5">5</option></select></label>
+              <label>Note des clients <select class="champ court" id="bfnote"><option value="">Toutes</option><option value="7">7 et plus</option><option value="8">8 et plus</option><option value="9">9 et plus</option></select></label>
+            </div>
+            <div class="rang">
+              <label>Prix maximum par nuit <input class="champ court" id="bfprix" inputmode="numeric" autocomplete="off" placeholder="sans limite"></label>
+              <label>Type <select class="champ court" id="bftype"><option value="">Tous</option><option value="hotel">Hôtel</option><option value="auberge">Auberge de jeunesse</option><option value="appartement">Appartement</option><option value="chambre">Chambre d'hôtes</option><option value="maison">Maison d'hôtes</option></select></label>
+            </div>
+            <label class="coche"><input type="checkbox" id="bfpetit"> Petit-déjeuner inclus</label>
+            <label class="coche"><input type="checkbox" id="bfannul"> Annulation gratuite</label>
+            <fieldset class="equip"><legend>Équipements</legend>
+              <label class="coche"><input type="checkbox" data-equip="wifi"> Wi-Fi gratuit</label>
+              <label class="coche"><input type="checkbox" data-equip="piscine"> Piscine</label>
+              <label class="coche"><input type="checkbox" data-equip="sport"> Salle de sport</label>
+              <label class="coche"><input type="checkbox" data-equip="parking"> Parking</label>
+              <label class="coche"><input type="checkbox" data-equip="clim"> Climatisation</label>
+              <label class="coche"><input type="checkbox" data-equip="restaurant"> Restaurant</label>
+              <label class="coche"><input type="checkbox" data-equip="accueil24"> Réception 24 h</label>
+            </fieldset>
+            <div class="rang">
+              <label>Distance maximale du centre des étapes <select class="champ court" id="bfdist"><option value="">Sans limite</option><option value="0.5">500 m</option><option value="1">1 km</option><option value="2">2 km</option><option value="3">3 km</option></select></label>
+              <label>Trier par <select class="champ court" id="bftri"><option value="distance">Distance</option><option value="prix">Prix</option><option value="note">Note</option></select></label>
+            </div>
+            <p class="sous">Étoiles, note, prix, type, équipements, petit-déjeuner et annulation sont envoyés à Booking.com : relancez la recherche après les avoir changés. La distance et le tri s'appliquent tout de suite.</p>
+            <button type="button" class="btn discret" id="bfreset">Réinitialiser les filtres</button>
+          </div>
+        </details>
+        <div class="rang"><button type="submit" class="btn primaire" id="hbchercher">Chercher des hôtels près de mes étapes</button></div>
+      </form>
+      <div class="optim" id="hbetat" role="status">Recherche dans Booking.com, par votre connecteur, autour du centre de vos étapes.</div>
+      <ul class="vols-liste" id="hbliste"></ul>
+    </section>
+    <section class="ajout vols" id="budget" hidden aria-label="Budget du voyage">
+      <div class="ajout-tete">
+        <h3>Budget du voyage</h3>
+        <button type="button" class="btn discret" id="budgetfermer">Fermer</button>
+      </div>
+      <form class="formpose" id="budgetform">
+        <div class="rang">
+          <label>Voyageurs <select class="champ court" id="budvoy"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+          <button type="submit" class="btn primaire" id="budgetcalc">Calculer le budget</button>
+        </div>
+      </form>
+      <div class="optim" id="budgetetat" role="status">Vols, hébergement, transports, taxis et dépenses saisies, par devise.</div>
+      <div id="budgetsortie"></div>
+      <p class="sous bud-note">Les transports en commun sont comptés par voyageur, les taxis par course. Les montants « ≈ » sont des estimations. Les entrées et les repas ne sont pas connus : saisissez-les dans la fiche de chaque étape.</p>
+    </section>
+    <section class="ajout vols vols-droite" id="vols" hidden aria-label="Réservation de vol">
+      <header class="vd-tete">
+        <span class="vd-ico"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></span>
+        <div class="vd-titre"><h3>Réservation de vol</h3><p class="sous">Indiquez votre trajet, puis comparez les vols sur Google Flights, Skyscanner, Kayak ou Expedia : tout ce que vous renseignez ici est repris sur le site.</p></div>
+        <button type="button" class="btn discret" id="volsfermer">Fermer</button>
+      </header>
+      <form class="vd-form" id="volsform">
+        <fieldset class="vd-bloc">
+          <legend><span class="vd-n">1</span> Votre trajet</legend>
+          <div class="vd-trip" role="group" aria-label="Type de trajet"><button type="button" data-trip="aller" aria-pressed="true">Aller simple</button><button type="button" data-trip="retour" aria-pressed="false">Aller-retour</button></div>
+          <div class="vd-trajet">
+            <label>Ville de départ <select class="champ" id="volsde"></select></label>
+            <button type="button" class="btn vd-swap" id="volsinverser" aria-label="Inverser le sens du trajet" title="Inverser départ et arrivée">&#8644;</button>
+            <label>Ville d'arrivée <select class="champ" id="volsvers"></select></label>
+          </div>
+        </fieldset>
+        <fieldset class="vd-bloc">
+          <legend><span class="vd-n">2</span> Quand et pour qui ?</legend>
+          <div class="vd-quand">
+            <label><span id="vddatelib">Date du vol</span> <input class="champ" type="date" id="volsdate" required></label>
+            <label id="vdretour" hidden>Date du retour <input class="champ" type="date" id="volsretour"></label>
+            <div class="vd-voy"><span class="vd-lib">Voyageurs</span>
+              <div class="vd-pas"><button type="button" id="vdmoins" aria-label="Un voyageur de moins">&minus;</button><output id="vdnb" aria-live="polite">1</output><button type="button" id="vdplus" aria-label="Un voyageur de plus">+</button></div>
+            </div>
+          </div>
+          <select class="visuel-cache" id="volsadultes" tabindex="-1" aria-hidden="true"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select>
+          <div><span class="vd-lib">Classe</span>
+            <div class="vd-classe" role="group" aria-label="Classe de voyage">
+              <button type="button" data-classe="economy" aria-pressed="true">Économique</button><button type="button" data-classe="premium" aria-pressed="false">Premium</button><button type="button" data-classe="business" aria-pressed="false">Affaires</button><button type="button" data-classe="first" aria-pressed="false">Première</button>
+            </div>
+          </div>
+          <select class="visuel-cache" id="volsclasse" tabindex="-1" aria-hidden="true"><option value="economy">Économique</option><option value="premium">Premium économique</option><option value="business">Affaires</option><option value="first">Première</option></select>
+        </fieldset>
+        <fieldset class="vd-bloc">
+          <legend><span class="vd-n">3</span> Vos préférences <span class="sous">(facultatif)</span></legend>
+          <label class="coche vd-sw"><input type="checkbox" id="volsdirects"> Vol direct uniquement</label>
+          <div class="vd-quand">
+            <label>Partir après <input class="champ" type="time" id="volsapres"></label>
+            <label>Arriver avant <input class="champ" type="time" id="volsavant"></label>
+          </div>
+          <label class="coche"><input type="checkbox" id="volscaler"> <span id="volscalerlib"></span></label>
+          <div class="aeros"><span class="vd-lib">Aéroports de départ</span><div id="volsaerodep"></div></div>
+          <div class="aeros"><span class="vd-lib">Aéroports d'arrivée</span><div id="volsaeroarr"></div></div>
+          <p class="sous" id="volsmarges"></p>
+        </fieldset>
+        <details class="vd-avance" id="vdavance">
+          <summary>Options de classement des résultats (recherche avec les connecteurs)</summary>
+          <div class="vd-quand">
+            <label>Classer par
+              <select class="champ" id="volstri">
+                <option value="compromis">Meilleur compromis temps et prix</option>
+                <option value="rapide">Le plus rapide</option>
+                <option value="prix">Le moins cher</option>
+                <option value="escales">Le moins d'escales</option>
+                <option value="depart">Départ le plus tôt</option>
+              </select>
+            </label>
+            <label>Une heure de mon temps vaut
+              <select class="champ" id="volsvaleur"><option value="5">peu (5)</option><option value="15" selected>moyen (15)</option><option value="40">beaucoup (40)</option></select>
+            </label>
+            <label>Taux de change (1 € en $, facultatif) <input class="champ" type="text" inputmode="decimal" id="volstaux" placeholder="ex. 1,10"></label>
+          </div>
+        </details>
+        <div class="vd-actions">
+          <div class="vd-comparer">
+            <span class="vd-lib">Comparer ce vol sur un site <span class="sous">(s'ouvre dans un nouvel onglet)</span></span>
+            <div class="vd-liens" id="vdliens">
+              <a class="vd-lien" id="lienvolgf" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>Google Flights</a>
+              <a class="vd-lien" id="lienvolsk" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>Skyscanner</a>
+              <a class="vd-lien" id="lienvolky" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>Kayak</a>
+              <a class="vd-lien" id="lienvolex" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>Expedia</a>
+            </div>
+            <p class="sous" id="liensnote" role="status"></p>
+          </div>
+          <div class="vd-connect" id="vdconnect"><button type="submit" class="btn primaire" id="volschercher">Chercher avec mes connecteurs Claude</button><button type="button" class="btn" id="volsretourbtn" hidden>Chercher le vol retour</button><span class="sous" id="vdconnectnote">Prix et horaires réels dans cette page (Expedia et eDreams).</span></div>
+        </div>
+      </form>
+      <div class="optim" id="volsetat" role="status">Recherche dans Expedia (dollars américains) et eDreams (euros), via vos connecteurs.</div>
+      <ul class="vols-liste" id="volsliste"></ul>
+      <div id="volsretenus"></div>
+      <div class="optim" id="volsformalites">
+        <strong>À vérifier avant de réserver</strong><br>
+        Passeport valide pour chaque voyageur. Selon la nationalité, un visa ou une autorisation de voyage électronique peut être exigé (ESTA pour les États-Unis, AVE pour le Canada, ETIAS pour l'espace Schengen dont la date d'entrée en vigueur est à vérifier) : ce point n'est pas vérifié ici, consultez les sites officiels.
+        Au départ de Montréal-Trudeau vers les États-Unis, les formalités américaines se font à l'aéroport avant le vol : prévoyez plus de temps.
+        Les durées « porte à porte » ajoutent des temps de trajet vers l'aéroport et des marges qui sont des estimations, pas des mesures.
+      </div>
+    </section>
+    <div class="visuel-cache" id="annonce" role="status" aria-live="polite"></div>
+  </aside>
+
+  <div class="scene" id="scene">
+    <div id="carte"></div>
+    <div id="etiquettes"></div>
+    <div class="etat" id="etat">Chargement de la ville…</div>
+    <div class="outils"><button type="button" id="recentrer">Recentrer</button><button type="button" id="relief" aria-pressed="false" title="Afficher les bâtiments en relief">Relief 3D</button></div>
+    <div class="legende" id="legende" role="group" aria-label="Types d'étapes"></div>
+    <div class="bandeau-pose" id="bandeau" hidden>
+      <span>Clique sur la carte pour placer le lieu</span>
+      <button type="button" class="btn" id="annulerclic">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- OD2:DEBUT -->
+<div class="od-modal" id="odmodal" hidden role="dialog" aria-modal="true" aria-labelledby="odtitre"><div class="od-boite">
+  <h2 id="odtitre">Générer une ville</h2>
+  <p class="sous">Choisissez n'importe quelle ville du monde de plus de 20 000 habitants : sa carte (rues avec leurs noms, bâtiments, eau, parcs, quartiers, lieux à visiter) est générée à la demande à partir des données ouvertes d'Overture Maps, puis utilisée comme une ville préparée. Les trajets se font à pied ou en taxi : pas de transports en commun ni d'horaires d'ouverture.</p>
+  <label class="visuel-cache" for="odq">Rechercher une ville</label>
+  <input class="champ" id="odq" type="search" placeholder="Rechercher une ville du monde" autocomplete="off">
+  <ul class="od-res" id="odres"></ul>
+  <label class="coche"><input type="checkbox" id="odparcs" checked> Charger aussi les parcs et zones vertes <span class="sous">(la moitié du volume téléchargé)</span></label>
+  <p class="sous" id="odetat" role="status"></p>
+  <div class="rang"><button type="button" class="btn" id="odfermer">Fermer</button></div>
+</div></div>
+<script>@@ESC:vendor/pq.js@@</script>
+<script type="application/json" id="od-villes">@@ESCJSON:data/villes_20k.json@@</script>
+<script type="text/plain" id="od-idx">@@B64:data/index_overture.json.wasm@@</script>
+<!-- OD2:FIN -->
+<script src="maplibre-gl.js"></script>
+<script>
+(function(){
+  "use strict";
+@@FILE:src/js/core.js@@@@FILE:src/js/vols-liens.js@@@@FILE:src/js/lieux-et-relief.js@@@@FILE:src/js/generation-villes.js@@})();
+</script>
+<script>@@FILE:src/js/boite-a-outils.js@@</script>
+<script>@@FILE:src/js/formulaire-vol.js@@</script>
+
+
+
+</body></html>
+

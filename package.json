@@ -1,0 +1,15 @@
+{
+  "name": "itineraires-de-villes",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Itinéraires de villes : préparation de voyages sur des cartes de villes préparées ou générées à la demande",
+  "scripts": {
+    "build": "python3 build.py",
+    "verifier-build": "python3 build.py --check",
+    "test": "node tests/run.js",
+    "test:sans-reseau": "SANS_RESEAU=1 node tests/run.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.50.0"
+  }
+}
