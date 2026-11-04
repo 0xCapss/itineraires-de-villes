@@ -13,7 +13,7 @@ Un envoi unique de tout le dépôt (147 Mo) peut échouer par coupure réseau : 
 
 ## Page publiée dans Claude (copie séparée)
 
-L'application existe aussi comme page publiée dans Claude (même `index.html`, plus `maplibre-gl.js`, `jspdf.umd.min.js` et les dossiers de villes). Elle est la seule où les connecteurs de vols et d'hôtels fonctionnent, et la seule génération de ville y est bloquée. Elle se republie avec l'outil de publication de Claude à partir de `index.html` : les deux copies ne se mettent pas à jour toutes seules.
+L'application existe aussi comme page publiée dans Claude (même `index.html`, plus `maplibre-gl.js`, `jspdf.umd.min.js`, les dossiers de villes et, pour le chargement paresseux de la génération, `data/villes_20k.json`, `data/index_overture.json.wasm` et `vendor/pq.js`, publiés au même chemin relatif). Elle est la seule où les connecteurs de vols et d'hôtels fonctionnent, et la seule génération de ville y est bloquée. Elle se republie avec l'outil de publication de Claude à partir de `index.html` : les deux copies ne se mettent pas à jour toutes seules.
 
 ## Régénérer les données
 

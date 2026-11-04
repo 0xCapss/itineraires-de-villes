@@ -2,12 +2,13 @@
 
 ## Assemblage
 
-`build.py` lit `src/gabarit.html` et remplace chaque emplacement `@@FILE:chemin@@`, `@@ESC:chemin@@`, `@@ESCJSON:chemin@@` ou `@@B64:chemin@@` par le contenu du fichier (échappé pour une balise `<script>`, ou encodé en base64). Le résultat est `index.html`, un fichier autonome (3,3 Mo) : styles, code, liste des villes et index des fichiers d'Overture y sont intégrés. Seuls `maplibre-gl.js`, `jspdf.umd.min.js` et les dossiers de villes sont chargés à part.
+`build.py` lit `src/gabarit.html` et remplace chaque emplacement `@@FILE:chemin@@`, `@@ESC:chemin@@`, `@@ESCJSON:chemin@@` ou `@@B64:chemin@@` par le contenu du fichier (échappé pour une balise `<script>`, ou encodé en base64). Le résultat est `index.html` (environ 540 Ko, 155 Ko compressé) : styles et code y sont intégrés. Sont chargés à part : `maplibre-gl.js`, `jspdf.umd.min.js`, les dossiers de villes, et, seulement quand l'utilisateur ouvre « Générer une ville », `data/villes_20k.json`, `data/index_overture.json.wasm` et `vendor/pq.js` (chargement paresseux dans `generation-villes.js`, fonctions `odVillesCharger`, `odIndex`, `odPQ`, `odPret`).
 
 ## Le code (`src/js/`)
 
 Le script principal est une seule fonction (`(function(){ "use strict"; ... })()`) : les fichiers ci-dessous sont concaténés **dans cet ordre** à l'intérieur de cette fonction et partagent donc ses variables. Un fichier n'est pas un module autonome.
 
+0. `purs.js` : fonctions pures (normalisation, identifiants, encodage de lignes, classes de rues, regroupement de plages d'octets, sélection des groupes de lignes, construction des liens de vol). Chargé avant le script principal sous l'objet global `Purs`, et testé seul en Node (`tests/unitaires/`).
 1. `core.js` : le moteur d'origine. Villes et leurs données, carte MapLibre, étapes et journées, trajets (graphe des rues, transports en commun par fréquences, taxis), budget, rapport PDF, enregistrement et partage d'un voyage, hôtel de base, recherche de vols par connecteurs, toolbox des activités (tuiles et création).
 2. `vols-liens.js` : liens « Comparer ce vol » vers Google Flights, Skyscanner, Kayak et Expedia, construits à partir du formulaire de vol.
 3. `lieux-et-relief.js` : points des lieux affichés sur la carte pendant l'ajout d'une étape, et bouton « Relief 3D ».

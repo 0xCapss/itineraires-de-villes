@@ -31,7 +31,9 @@ Site : https://0xcapss.github.io/itineraires-de-villes/
 npm install            # une fois (Playwright)
 npx playwright install chromium   # une fois, si aucun navigateur n'est installé
 python3 build.py       # régénère index.html après avoir modifié src/ ou data/
-npm test               # tests automatiques (SANS_RESEAU=1 pour ignorer ceux qui lisent Overture Maps)
+npm test               # tests unitaires (Node) puis tests navigateur (SANS_RESEAU=1 pour ignorer ceux qui lisent Overture Maps)
+npm run lint           # ESLint sur le code assemblé (erreurs : variables non définies, etc.)
+node tests/mesures.js  # mesures de démarrage (taille, temps, mémoire, tâches longues)
 ```
 
 Pour voir le site en local : `python3 -m http.server 8000`, puis ouvrir http://localhost:8000/.

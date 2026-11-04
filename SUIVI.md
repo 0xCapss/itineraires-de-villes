@@ -9,7 +9,17 @@ Dernière mise à jour : 4 novembre 2026.
 - Boîte à outils des activités : 8 types, filtre, création d'une activité sur la carte.
 - Génération d'une ville à la demande (Mexico) : cellules voisines, quartiers et lieux chargés, ville sélectionnée dans la liste, historique limité à 10 villes et conservé après rechargement.
 - `index.html` correspond à `build.py`.
+- 18 tests unitaires et micro-benchmarks Node (`tests/unitaires/`) : fonctions pures, avec budgets de temps larges.
+- Budget de démarrage dans le navigateur (`tests/budget.test.js`) : taille, DOMContentLoaded, ville prête, tas JavaScript, noeuds DOM. Parcours des 13 villes sans erreur de page (`tests/villes.test.js`).
+- ESLint : 0 erreur, 0 avertissement (`npm run lint`).
 - Les scripts `scripts/index_overture.py` et `scripts/villes_overture.py` reproduisent à l'identique `data/index_overture.json.wasm` et `data/villes_20k.json` (essai du 4 novembre 2026, données d'Overture Maps version 2026-10-21.0).
+
+## Mesures de performance (rendu logiciel, serveur local, 4 novembre 2026)
+
+- `index.html` : 3257 Ko avant, 536 Ko après (compressé : 1,91 Mo avant, 155 Ko après). Le gain est surtout du transfert réseau ; les temps locaux (DOMContentLoaded environ 570 ms, ville prête 1,3 s, tas 28 Mo) sont quasi inchangés.
+- Environ 22 tâches longues au démarrage (2 s cumulées) : non traitées, à examiner si le démarrage sur téléphone est jugé lent.
+- Lecture de l'index Overture 36 ms, sélection des groupes de lignes moins de 1 ms, recherche dans 25 337 villes 0,5 ms : ces points ne sont pas des goulots.
+- Concurrence des requêtes de génération réduite à 2 si l'appareil déclare 4 Go de mémoire ou moins ; points d'intérêt limités à 1200 et masqués sous le zoom 13,5.
 
 ## Mesuré à la main pendant le développement (non automatisé)
 
